@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV в XML Конвертер (СИ)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+        .drag-area {
+            border: 2px dashed #cbd5e1; /* slate-300 */
+            transition: all 0.3s ease;
+        }
+        .drag-area.active {
+            border-color: #3b82f6; /* blue-500 */
+            background-color: #eff6ff; /* blue-50 */
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="p-4 md:p-8 min-h-screen">
+
+    <div class="max-w-4xl mx-auto bg-white p-6 md:p-10 rounded-xl shadow-2xl">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">
+                Конвертер CSV в XML (СИ)
+            </h1>
+            <p class="text-gray-500">
+                Загрузите CSV-файл для преобразования данных о поверках в формат XML.
+            </p>
+        </header>
+
+        <!-- File Input Area -->
+        <div id="drop-area" class="drag-area p-8 rounded-lg text-center cursor-pointer transition-all hover:shadow-lg">
+            <input type="file" id="fileInput" accept=".csv" class="hidden">
+            <svg class="mx-auto h-12 w-12 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 014 4v2a4 4 0 01-4 4H7z" />
+            </svg>
+            <p class="mt-2 text-sm text-gray-600">
+                Перетащите CSV-файл сюда или <span class="text-blue-600 font-medium">нажмите для выбора</span>
+            </p>
+            <p id="fileNameDisplay" class="text-xs text-gray-400 mt-1"></p>
+        </div>
+        
+        <!-- Status and Result Area -->
+        <div class="mt-8 p-4 bg-gray-50 rounded-lg shadow-inner">
+            <div id="statusMessage" class="text-gray-600 font-medium mb-2">
+                Ожидание загрузки файла...
+            </div>
+            
+            <button id="downloadButton"
+                    class="w-full bg-green-500 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-green-600 transition-colors duration-200 opacity-50 cursor-not-allowed"
+                    disabled>
+                Скачать XML-файл
+            </button>
+            <p id="recordCount" class="text-sm text-gray-500 mt-2 hidden"></p>
+        </div>
+
+        <!-- Log Area (optional for debugging) -->
+        <div class="mt-6 p-4 bg-red-100 border border-red-400 rounded-lg text-red-700 hidden" id="errorLog">
+            <h3 class="font-bold">Обнаружены ошибки:</h3>
+            <pre id="errorDetails" class="mt-2 whitespace-pre-wrap text-sm"></pre>
+        </div>
+    </div>
+
+    <script>
+        // --- КОНФИГУРАЦИЯ ---
+        const OUTPUT_XML_NAME = 'output_browser.xml';
+        const SNILS_PLACEHOLDER = '11489876506';
+        // Количество строк метаданных, которые нужно пропустить до заголовка
+        const HEADER_SKIP_LINES = 2; 
+
+        const COL_INDEX = {
+            'Author': 1,
+            'Type': 3,
+            'Date': 5,
+            'Suitability': 9,
+            'Document': 10
+        };
+
+        // --- ЭЛЕМЕНТЫ DOM ---
+        const fileInput = document.getElementById('fileInput');
+        const dropArea = document.getElementById('drop-area');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+        const statusMessage = document.getElementById('statusMessage');
+        const downloadButton = document.getElementById('downloadButton');
+        const recordCountElement = document.getElementById('recordCount');
+        const errorLog = document.getElementById('errorLog');
+        const errorDetails = document.getElementById('errorDetails');
+
+        // --- УТИЛИТЫ ---
+
+        function updateStatus(message, isError = false) {
+            statusMessage.textContent = message;
+            statusMessage.className = `font-medium mb-2 ${isError ? 'text-red-600' : 'text-gray-600'}`;
+            downloadButton.disabled = true;
+            downloadButton.classList.add('opacity-50', 'cursor-not-allowed');
+            downloadButton.classList.remove('bg-green-500', 'hover:bg-green-600');
+            errorLog.classList.add('hidden');
+            recordCountElement.classList.add('hidden');
+        }
+
+        function updateSuccess(count) {
+            statusMessage.textContent = 'Конвертация успешно завершена.';
+            statusMessage.className = 'font-medium mb-2 text-green-600';
+            downloadButton.disabled = false;
+            downloadButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            downloadButton.classList.add('bg-green-500', 'hover:bg-green-600');
+            recordCountElement.textContent = `Сконвертировано записей: ${count}`;
+            recordCountElement.classList.remove('hidden');
+        }
+        
+        function logError(message) {
+            console.error(message);
+            errorDetails.textContent += message + '\n';
+            errorLog.classList.remove('hidden');
+        }
+        
+        function hasEncodingIssues(text) {
+            // U+FFFD is the Unicode Replacement Character, often used when decoding fails.
+            return text.includes('\uFFFD');
+        }
+
+        /**
+         * Парсит строку даты из CSV в объект Date. Поддерживает форматы DD.MM.YYYY, DD-MM-YYYY, YYYY-MM-DD.
+         * @param {string} dateStr - Строка даты (может содержать время).
+         * @returns {Date | null} Объект Date или null при ошибке.
+         */
+        function parseDate(dateStr) {
+            const formats = ["YYYY-MM-DD", "DD.MM.YYYY", "DD-MM-YYYY"];
+            
+            // Удаляем компонент времени
+            const cleanDateStr = dateStr.trim().split(' ')[0];
+
+            for (const format of formats) {
+                // Ищем все числа в строке (должно быть 3)
+                const parts = cleanDateStr.match(/(\d+)/g); 
+                
+                if (parts && parts.length === 3) {
+                    let year, month, day;
+
+                    if (format === "YYYY-MM-DD") {
+                        [year, month, day] = parts.map(Number);
+                    } else { // DD.MM.YYYY or DD-MM-YYYY
+                        // При парсинге DD.MM.YYYY, DD-MM-YYYY
+                        [day, month, year] = parts.map(Number);
+                    }
+
+                    // JavaScript Date: месяц 0-индексированный (0=Янв, 11=Дек)
+                    const dateObj = new Date(year, month - 1, day);
+
+                    // Проверка на корректность парсинга (например, 30 февраля)
+                    if (dateObj.getFullYear() === year && dateObj.getMonth() === month - 1 && dateObj.getDate() === day) {
+                        return dateObj;
+                    }
+                }
+            }
+            return null; // Если парсинг не удался
+        }
+
+        /**
+         * Форматирует строку даты в ISO формат YYYY-MM-DD.
+         * @param {string} dateStr - Строка даты из CSV.
+         * @returns {string} Дата в формате YYYY-MM-DD или пустая строка.
+         */
+        function formatDateToISO(dateStr) {
+            const dt = parseDate(dateStr);
+            if (!dt) return ""; 
+
+            // Форматируем в YYYY-MM-DD
+            const y = dt.getFullYear();
+            const m = String(dt.getMonth() + 1).padStart(2, '0');
+            const d = String(dt.getDate()).padStart(2, '0');
+            
+            return `${y}-${m}-${d}`;
+        }
+
+
+        function mapSuitability(suitabilityText) {
+            const text = suitabilityText.trim().toLowerCase();
+            if (text === "да" || text === "yes") {
+                return '1';
+            }
+            if (text === "нет" || text === "no") {
+                return '2';
+            }
+            return '1'; // По умолчанию '1'
+        }
+
+        function calculateDateEndVerification(dateVerificationStr) {
+            const dtStart = parseDate(dateVerificationStr);
+            if (!dtStart) return ""; 
+
+            // Добавляем 2 года
+            const dtEnd = new Date(dtStart.getTime()); 
+            dtEnd.setFullYear(dtStart.getFullYear() + 2);
+
+            // Вычитаем 1 день
+            // Примечание: JavaScript корректно обрабатывает вычитание дня, 
+            // даже если это приводит к переходу на предыдущий год/месяц.
+            dtEnd.setDate(dtEnd.getDate() - 1);
+
+            // Форматируем в YYYY-MM-DD
+            const y = dtEnd.getFullYear();
+            const m = String(dtEnd.getMonth() + 1).padStart(2, '0');
+            const d = String(dtEnd.getDate()).padStart(2, '0');
+            
+            return `${y}-${m}-${d}`;
+        }
+        
+        // --- ОСНОВНАЯ ЛОГИКА КОНВЕРТАЦИИ ---
+
+        function convertToXML(csvContent, usedDelimiter) {
+            const lines = csvContent.split('\n').filter(line => line.trim() !== '');
+            
+            if (lines.length <= HEADER_SKIP_LINES) {
+                updateStatus("Ошибка: Файл пуст или содержит только метаданные.", true);
+                return null;
+            }
+
+            // Пропускаем строки метаданных
+            const csvTextWithHeader = lines.slice(HEADER_SKIP_LINES);
+            
+            if (csvTextWithHeader.length === 0) {
+                 updateStatus("Ошибка: Не удалось найти записи для конвертации. Проверьте содержимое файла.", true);
+                 return null;
+            }
+
+            const headerLine = csvTextWithHeader[0];
+            let effectiveDelimiter = usedDelimiter; 
+
+            // Если разделитель еще не определен, определяем его
+            if (!effectiveDelimiter) {
+                const commaCount = (headerLine.match(/,/g) || []).length;
+                const semicolonCount = (headerLine.match(/;/g) || []).length;
+
+                if (semicolonCount > commaCount + 2) {
+                    effectiveDelimiter = ';';
+                } else {
+                    effectiveDelimiter = ',';
+                }
+            }
+            
+            // --- Пропускаем заголовок CSV (первая строка после метаданных) ---
+            const dataLines = csvTextWithHeader.slice(1); 
+            
+            // --- Улучшенный ручной парсинг CSV ---
+            const dataRecords = dataLines.map(line => {
+                if (!line.trim()) return [];
+                
+                const fields = [];
+                let currentField = '';
+                let inQuotes = false;
+                
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === effectiveDelimiter && !inQuotes) {
+                        // Помещаем очищенное поле
+                        fields.push(currentField.trim().replace(/^"|"$/g, ''));
+                        currentField = '';
+                    } else {
+                        currentField += char;
+                    }
+                }
+                // Добавляем последнее поле
+                fields.push(currentField.trim().replace(/^"|"$/g, ''));
+
+                // Фильтруем пустые поля, которые могут быть в конце из-за разделителя
+                while (fields.length > 0 && fields[fields.length - 1] === '') {
+                    fields.pop();
+                }
+                
+                return fields;
+            }).filter(fields => fields.length > COL_INDEX.Document); // Фильтруем по минимальной длине
+
+            if (dataRecords.length === 0) {
+                 updateStatus("Ошибка: Не найдено записей для конвертации. Проверьте формат данных.", true);
+                 return null;
+            }
+
+            // Начинаем строить XML
+            let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+            // Внимание: пробелы в тегах Message, xmlns:xsi и xsi:noNamespaceSchemaLocation были исправлены для избежания SyntaxError
+            xml += '<Message xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="schema.xsd">\n';
+            xml += '    <VerificationMeasuringInstrumentData>\n';
+            
+            let recordCount = 0;
+            errorDetails.textContent = '';
+            
+            for (const fields of dataRecords) {
+                if (fields.length < COL_INDEX.Document + 1) continue;
+
+                try {
+                    const authorFull = fields[COL_INDEX.Author];
+                    const documentNum = fields[COL_INDEX.Document];
+                    
+                    if (!documentNum || documentNum.trim() === '') continue;
+
+                    const dateVerification = fields[COL_INDEX.Date];
+                    const typeInstrument = fields[COL_INDEX.Type];
+                    const suitabilityText = fields[COL_INDEX.Suitability];
+
+                    // Разделение ФИО (Простая логика: Фамилия, затем Имя Отчество)
+                    const authorParts = authorFull.split(/\s+/).filter(p => p.length > 0);
+                    const lastName = authorParts[0] || "Unknown";
+                    const firstName = authorParts.slice(1).join(' ');
+                    
+                    const dateVerificationClean = dateVerification.split(' ')[0];
+                    
+                    // --- Форматирование даты в YYYY-MM-DD для тега DateVerification ---
+                    const formattedDateVerification = formatDateToISO(dateVerificationClean);
+
+                    const dateEndVerification = calculateDateEndVerification(dateVerificationClean);
+                    const resultVerification = mapSuitability(suitabilityText);
+                    
+                    // Экранирование XML-специальных символов
+                    const escape = (str) => str ? str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;') : '';
+
+                    xml += '        <VerificationMeasuringInstrument>\n';
+                    xml += `            <NumberVerification>${escape(documentNum)}</NumberVerification>\n`;
+                    // Используем отформатированную дату
+                    xml += `            <DateVerification>${escape(formattedDateVerification)}</DateVerification>\n`;
+                    xml += `            <DateEndVerification>${escape(dateEndVerification)}</DateEndVerification>\n`;
+                    xml += `            <TypeMeasuringInstrument>${escape(typeInstrument)}</TypeMeasuringInstrument>\n`;
+                    xml += '            <ApprovedEmployees>\n';
+                    xml += '                <Name>\n';
+                    xml += `                    <Last>${escape(lastName)}</Last>\n`;
+                    xml += `                    <First>${escape(firstName)}</First>\n`;
+                    xml += '                </Name>\n';
+                    xml += `                <SNILS>${SNILS_PLACEHOLDER}</SNILS>\n`;
+                    xml += '            </ApprovedEmployees>\n';
+                    xml += `            <ResultVerification>${resultVerification}</ResultVerification>\n`;
+                    xml += '        </VerificationMeasuringInstrument>\n';
+                    
+                    recordCount++;
+
+                } catch (e) {
+                    logError(`Ошибка обработки строки: ${fields.join(effectiveDelimiter)}. Сообщение: ${e.message}`);
+                }
+            }
+
+            xml += '    </VerificationMeasuringInstrumentData>\n';
+            xml += '    <SaveMethod>2</SaveMethod>\n';
+            xml += '</Message>';
+
+            if (recordCount > 0) {
+                updateSuccess(recordCount);
+                return xml;
+            } else {
+                updateStatus("Ошибка: Не найдено записей для конвертации. Проверьте формат данных.", true);
+                return null;
+            }
+        }
+
+        function downloadXML(xmlContent) {
+            const blob = new Blob([xmlContent], { type: 'text/xml;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = OUTPUT_XML_NAME;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        function readFileWithEncoding(file, encoding) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = reject;
+                // 'windows-1251' — стандартный алиас для CP1251
+                reader.readAsText(file, encoding);
+            });
+        }
+
+        // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
+
+        async function handleFiles(files) {
+            if (files.length === 0) return;
+
+            const file = files[0];
+            if (!file.name.toLowerCase().endsWith('.csv')) {
+                updateStatus("Ошибка: Пожалуйста, выберите файл CSV.", true);
+                return;
+            }
+            
+            errorDetails.textContent = '';
+            errorLog.classList.add('hidden');
+            fileNameDisplay.textContent = `Выбран файл: ${file.name}`;
+            updateStatus("Чтение и обработка файла...");
+
+            let csvContent = null;
+            let usedEncoding = 'UTF-8';
+
+            try {
+                // Попытка 1: UTF-8
+                let content = await readFileWithEncoding(file, 'UTF-8');
+                
+                if (hasEncodingIssues(content)) {
+                    // Попытка 2: Windows-1251 (для кириллицы в старых форматах)
+                    usedEncoding = 'windows-1251';
+                    content = await readFileWithEncoding(file, 'windows-1251');
+                    updateStatus(`Файл успешно прочитан с использованием кодировки Windows-1251.`);
+                }
+                
+                csvContent = content;
+
+                const xmlContent = convertToXML(csvContent, null); // Передаем null, парсер определит разделитель
+
+                if (xmlContent) {
+                    downloadButton.onclick = () => downloadXML(xmlContent);
+                } else {
+                    updateStatus("Не удалось создать XML-файл.", true);
+                }
+
+            } catch(e) {
+                 updateStatus(`Критическая ошибка чтения файла: ${e.message}`, true);
+            }
+        }
+
+        // Drop Area Events
+        dropArea.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.add('active'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.remove('active'), false);
+        });
+
+        dropArea.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }, false);
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // Инициализация
+        updateStatus("Готов к работе. Поддерживается автоопределение кодировки.");
+    </script>
+</body>
+</html>
