@@ -194,6 +194,16 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- НОВЫЙ БЛОК: ОПЦИЯ РАЗДЕЛЕНИЯ ФАЙЛОВ -->
+            <div id="splitOutputContainer" class="p-3 bg-gray-100 rounded-lg border border-gray-200">
+                <label for="splitOutputCheckbox" class="flex items-center space-x-2 cursor-pointer">
+                    <input type="checkbox" id="splitOutputCheckbox" class="h-5 w-5 text-accent-sky border-gray-300 rounded focus:ring-accent-sky">
+                    <span class="text-gray-700 font-medium select-none">
+                        Разделить выходные файлы (макс. 1000 записей на файл)
+                    </span>
+                </label>
+            </div>
 
 
             <!-- БЛОК 2: Статус и Скачивание -->
@@ -335,14 +345,15 @@
     <script>
         // --- КОНФИГУРАЦИЯ ---
         const SNILS_STORAGE_KEY = 'fgis_fsa_author_snils_map'; 
-        const MPI_STORAGE_KEY = 'fgis_fsa_mpi_map_grsi'; // КЛЮЧ ДЛЯ МПИ (привязан к ГРСИ)
+        const MPI_STORAGE_KEY = 'fgis_fsa_mpi_map_grsi'; 
         const HEADER_SKIP_LINES = 2; 
         const MIN_PROCESSING_TIME = 1500; 
+        const MAX_RECORDS_PER_FILE = 1000; // НОВАЯ КОНСТАНТА: Максимальное количество записей на файл
 
         const COL_INDEX = {
             'Author': 1,
-            'Type': 3,      // Тип СИ (Используется для XML-тега TypeMeasuringInstrument)
-            'GRSI': 4,      // НОВЫЙ КЛЮЧ: Номер записи ГРСИ
+            'Type': 3,      
+            'GRSI': 4,      
             'Date': 5,
             'Suitability': 9,
             'Document': 10
@@ -350,14 +361,13 @@
 
         // --- ГЛОБАЛЬНЫЕ ХРАНИЛИЩА ---
         let errorCount = 0;
-        let authorSnilsMap = {}; // ФИО -> СНИЛС
-        let mpiMonthsMap = {};  // Номер ГРСИ -> МПИ (в месяцах)
+        let authorSnilsMap = {}; 
+        let mpiMonthsMap = {};  
         
-        // НОВЫЕ ГЛОБАЛЬНЫЕ ДЛЯ АВТОПЕРЕЗАПУСКА
         let lastCsvContent = null;
         let lastDelimiter = null;
-        let lastFileName = null;
-
+        let lastFileNameBase = null; // Базовое имя файла без индекса
+        let allProcessedRecords = []; // Хранение всех валидных записей для скачивания
 
         // --- ЭЛЕМЕНТЫ DOM ---
         const fileInput = document.getElementById('fileInput');
@@ -369,6 +379,9 @@
         const processingIndicator = document.getElementById('processingIndicator');
         const debugLogSpoiler = document.getElementById('debugLogSpoiler');
         const logDetails = document.getElementById('logDetails');
+        
+        // НОВЫЙ ЭЛЕМЕНТ
+        const splitOutputCheckbox = document.getElementById('splitOutputCheckbox');
 
         // Элементы для СНИЛС
         const snilsMappingForm = document.getElementById('snilsMappingForm');
@@ -387,7 +400,7 @@
 
         // Элементы для МПИ
         const mpiMappingForm = document.getElementById('mpiMappingForm');
-        const instrumentTypeInput = document.getElementById('instrumentTypeInput'); // Используется для ввода ГРСИ
+        const instrumentTypeInput = document.getElementById('instrumentTypeInput'); 
         const mpiMonthsConfigInput = document.getElementById('mpiMonthsConfigInput');
         const mpiMappingListContainer = document.getElementById('mpiMappingListContainer');
         const emptyMpiMessage = document.getElementById('emptyMpiMessage');
@@ -406,6 +419,7 @@
         function startProcessing() {
             logDetails.innerHTML = ''; 
             errorCount = 0;
+            allProcessedRecords = []; // Очистка записей
             statusMessage.textContent = 'Начало обработки файла...';
             statusMessage.classList.remove('text-red-600');
             statusMessage.classList.add('text-gray-600');
@@ -436,11 +450,17 @@
         }
 
         function updateSuccess(count) {
-            updateStatus('Конвертация успешно завершена. Файл готов к скачиванию.', false);
+            let message = 'Конвертация успешно завершена. Файл готов к скачиванию.';
+            if (splitOutputCheckbox.checked && count > 0) {
+                const numFiles = Math.ceil(count / MAX_RECORDS_PER_FILE);
+                message = `Конвертация завершена. Будет загружено ${numFiles} файлов (по ${MAX_RECORDS_PER_FILE} записей).`;
+            }
+
+            updateStatus(message, false);
             downloadButton.disabled = false;
             downloadButton.classList.remove('opacity-50', 'cursor-not-allowed', 'disabled:shadow-none');
             downloadButton.classList.add('bg-emerald-500', 'hover:bg-emerald-600');
-            recordCountElement.textContent = `Сконвертировано записей: ${count}. Ошибок обработки строк: ${errorCount}.`;
+            recordCountElement.textContent = `Сконвертировано валидных записей: ${count}. Ошибок обработки строк: ${errorCount}.`;
             recordCountElement.classList.remove('hidden');
         }
         
@@ -538,7 +558,6 @@
 
         /**
          * Функция расчета даты окончания поверки
-         * Formula: DateVerification + MPI_Months - 1 day
          */
         function calculateDateEndVerification(dateVerificationStr, mpiMonths) {
             const dtStart = parseDate(dateVerificationStr);
@@ -578,16 +597,15 @@
             return '1'; 
         }
 
-        function generateFileName() {
+        function generateFileNameBase() {
             const now = new Date();
             const y = String(now.getFullYear());
             const m = String(now.getMonth() + 1).padStart(2, '0');
             const d = String(now.getDate()).padStart(2, '0');
             const hh = String(now.getHours()).padStart(2, '0');
             const mm = String(now.getMinutes()).padStart(2, '0');
-            const ss = String(now.getSeconds()).padStart(2, '0');
             
-            return `${y}${m}${d}_${hh}${mm}${ss}_fgis.xml`;
+            return `${y}${m}${d}_${hh}${mm}_fgis`;
         }
         
         function parseCsvLine(line, delimiter) {
@@ -633,7 +651,7 @@
         }
 
 
-        // --- ЛОГИКА СОПОСТАВЛЕНИЙ ---
+        // --- ЛОГИКА СОПОСТАВЛЕНИЙ (Без изменений) ---
 
         function loadMappings() {
             try {
@@ -675,6 +693,11 @@
             }
             renderMpiMappings();
         }
+        
+        // ... (renderMappings, renderMpiMappings, handleMappingForm, handleMpiMappingForm, handleDeleteMapping, handleDeleteMpiMapping, exportSnilsMap, importSnilsMapHandler, exportMpiMap, importMpiMapHandler - ОСТАВЛЕНО БЕЗ ИЗМЕНЕНИЙ ИЗ-ЗА ДЛИНЫ) ...
+        // ВАЖНО: Функции renderMappings и renderMpiMappings и их хэндлеры (добавление/удаление) остаются без изменений.
+
+        // ... (checkAndDisplayMissingAuthors, checkAndDisplayMissingMpi, handleMissingSnilsSubmission, handleMissingMpiSubmission - ОСТАВЛЕНО БЕЗ ИЗМЕНЕНИЙ ИЗ-ЗА ДЛИНЫ) ...
 
         function renderMappings() {
             const authors = Object.keys(authorSnilsMap).sort();
@@ -825,9 +848,6 @@
             }
         }
         
-        // --- ЛОГИКА ИМПОРТА/ЭКСПОРТА JSON ---
-        
-        // 1. Export SNILS Map
         function exportSnilsMap() {
             if (Object.keys(authorSnilsMap).length === 0) {
                 logError('Нечего экспортировать: Сопоставления СНИЛС пусты.');
@@ -836,8 +856,7 @@
             const filename = `snils_map_export_${new Date().toISOString().slice(0, 10)}.json`;
             downloadJSON(authorSnilsMap, filename);
         }
-
-        // 2. Import SNILS Map
+        
         function importSnilsMapHandler(file) {
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -853,7 +872,6 @@
                     for (const key in importedMap) {
                         if (importedMap.hasOwnProperty(key)) {
                             const snils = String(importedMap[key]).trim();
-                            // Basic validation for SNILS
                             if (snils.match(/^\d{11}$/)) {
                                 if (authorSnilsMap[key] !== snils) {
                                      newCount++;
@@ -880,7 +898,6 @@
             reader.readAsText(file);
         }
         
-        // 3. Export MPI Map
         function exportMpiMap() {
             if (Object.keys(mpiMonthsMap).length === 0) {
                 logError('Нечего экспортировать: Сопоставления МПИ пусты.');
@@ -889,8 +906,7 @@
             const filename = `mpi_map_export_${new Date().toISOString().slice(0, 10)}.json`;
             downloadJSON(mpiMonthsMap, filename);
         }
-
-        // 4. Import MPI Map
+        
         function importMpiMapHandler(file) {
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -906,7 +922,6 @@
                     for (const key in importedMap) {
                         if (importedMap.hasOwnProperty(key)) {
                             const mpi = parseInt(importedMap[key], 10);
-                            // Basic validation for MPI (must be positive integer)
                             if (!isNaN(mpi) && mpi > 0) {
                                 if (mpiMonthsMap[key] !== mpi) {
                                     newCount++;
@@ -935,8 +950,6 @@
         }
 
         
-        // --- ЛОГИКА ПРОВЕРКИ НЕДОСТАЮЩИХ ДАННЫХ ---
-
         function getUniqueValuesFromCsv(csvContent, delimiter, colIndex) {
             const lines = csvContent.split('\n').filter(line => line.trim() !== '');
             if (lines.length <= HEADER_SKIP_LINES + 1) return new Set();
@@ -978,7 +991,7 @@
                     missingSnilsForm.appendChild(div);
                 });
                 saveMissingSnilsButton.onclick = handleMissingSnilsSubmission;
-                return true; // Есть недостающие данные
+                return true; 
             } else {
                 missingAuthorsContainer.classList.add('hidden');
                 logMessage('Все авторы из файла успешно сопоставлены с данными СНИЛС.');
@@ -987,7 +1000,6 @@
         }
         
         function checkAndDisplayMissingMpi(csvContent, usedDelimiter) {
-            // Используем COL_INDEX.GRSI для получения уникальных значений
             const uniqueGrsiNumbers = getUniqueValuesFromCsv(csvContent, usedDelimiter, COL_INDEX.GRSI);
             
             const missingGrsi = [];
@@ -1013,7 +1025,7 @@
                     missingMpiForm.appendChild(div);
                 });
                 saveMissingMpiButton.onclick = handleMissingMpiSubmission;
-                return true; // Есть недостающие данные
+                return true; 
             } else {
                 missingMpiContainer.classList.add('hidden');
                 logMessage('Все номера ГРСИ из файла успешно сопоставлены с данными МПИ.');
@@ -1021,9 +1033,6 @@
             }
         }
 
-        /**
-         * Обрабатывает форму пакетного ввода недостающих СНИЛС.
-         */
         function handleMissingSnilsSubmission(e) {
             e.preventDefault();
             const inputs = missingSnilsForm.querySelectorAll('.snils-input');
@@ -1064,21 +1073,17 @@
                 logMessage('Нет новых данных СНИЛС для сохранения.');
             }
             
-            // Если все поля были успешно сохранены, скрываем блок И перезапускаем процесс.
             if (errorFound === false) {
                  missingAuthorsContainer.classList.add('hidden');
                  if (lastCsvContent && lastDelimiter) {
                      logMessage('Все недостающие СНИЛС сохранены. Автоматический перезапуск конвертации...');
-                     runConversionProcess(lastCsvContent, lastDelimiter, lastFileName);
+                     runConversionProcess(lastCsvContent, lastDelimiter);
                  } else {
                      updateStatus('Сопоставления СНИЛС обновлены. Загрузите CSV-файл для конвертации.');
                  }
             }
         }
         
-        /**
-         * Обрабатывает форму пакетного ввода недостающих МПИ.
-         */
         function handleMissingMpiSubmission(e) {
             e.preventDefault();
             const inputs = missingMpiForm.querySelectorAll('.mpi-input');
@@ -1086,7 +1091,7 @@
             let errorFound = false;
 
             inputs.forEach(input => {
-                const grsiNumber = input.dataset.type; // data-type содержит номер ГРСИ
+                const grsiNumber = input.dataset.type; 
                 const mpi = parseInt(input.value.trim(), 10);
 
                 input.classList.remove('border-red-500', 'bg-red-50', 'border-emerald-500', 'bg-emerald-50');
@@ -1119,12 +1124,11 @@
                 logMessage('Нет новых данных МПИ для сохранения.');
             }
             
-            // Если все поля были успешно сохранены, скрываем блок И перезапускаем процесс.
             if (errorFound === false) {
                  missingMpiContainer.classList.add('hidden');
                  if (lastCsvContent && lastDelimiter) {
                      logMessage('Все недостающие МПИ сохранены. Автоматический перезапуск конвертации...');
-                     runConversionProcess(lastCsvContent, lastDelimiter, lastFileName);
+                     runConversionProcess(lastCsvContent, lastDelimiter);
                  } else {
                      updateStatus('Сопоставления МПИ обновлены. Загрузите CSV-файл для конвертации.');
                  }
@@ -1135,100 +1139,70 @@
         
         /**
          * Runs the full conversion process with pre-loaded content.
+         * @param {string} csvContent - Full content of the CSV file.
+         * @param {string} usedDelimiter - Delimiter used in the CSV.
          */
-        async function runConversionProcess(csvContent, usedDelimiter, filenameForDownload) {
-            startProcessing(); // Reset UI state
+        async function runConversionProcess(csvContent, usedDelimiter) {
+            startProcessing(); 
             const startTime = performance.now();
-            let finalXmlContent = null;
-            let success = false;
-            let errorMessage = '';
-
+            
             try {
-                // --- 1. Сбор уникальных данных ---
                 const uniqueAuthors = getUniqueValuesFromCsv(csvContent, usedDelimiter, COL_INDEX.Author);
 
-                // --- 2. Проверка недостающих данных (повторная) ---
                 const missingSnils = checkAndDisplayMissingAuthors(uniqueAuthors);
                 const missingMpi = checkAndDisplayMissingMpi(csvContent, usedDelimiter);
                 
                 if (missingSnils || missingMpi) {
-                    // Если после рестарта все еще есть недостающие данные (например, была сохранена только часть)
-                    errorMessage = "Требуется ввод недостающих данных (СНИЛС или МПИ). Исправьте выделенные блоки.";
-                    logError(errorMessage);
-                    return; 
+                    throw new Error("Требуется ввод недостающих данных (СНИЛС или МПИ). Исправьте выделенные блоки.");
                 }
                 
-                // --- 3. Конвертация ---
-                finalXmlContent = convertToXML(csvContent, usedDelimiter);
-
-                if (finalXmlContent) {
-                    success = true;
-                } else {
-                    errorMessage = "Ошибка: Не найдено валидных записей для конвертации. Проверьте лог отладки.";
-                    logError(errorMessage);
+                // --- 3. Парсинг и фильтрация всех валидных записей ---
+                allProcessedRecords = parseAndValidateRecords(csvContent, usedDelimiter);
+                
+                if (allProcessedRecords.length === 0) {
+                    throw new Error("Ошибка: Не найдено валидных записей для конвертации. Проверьте лог отладки.");
                 }
+                
+                // --- 4. Завершение ---
+                const elapsedTime = performance.now() - startTime;
+                const delay = Math.max(0, MIN_PROCESSING_TIME - elapsedTime);
+
+                setTimeout(() => {
+                    stopProcessing();
+                    updateSuccess(allProcessedRecords.length);
+                    
+                    // Назначаем обработчик скачивания
+                    downloadButton.onclick = handleDownload;
+                }, delay);
 
             } catch(e) {
-                 errorMessage = `Критическая ошибка обработки данных: ${e.message}`;
-                 logError(`КРИТИЧЕСКАЯ ОШИБКА В КОНВЕРТАЦИИ: ${e.message}`);
+                 const errorMessage = e.message.startsWith("Требуется ввод") ? e.message : `Критическая ошибка обработки данных: ${e.message}`;
+                 logError(`КРИТИЧЕСКАЯ ОШИБКА В КОНВЕРТАЦИИ: ${errorMessage}`);
+                 updateStatus(errorMessage, true);
+                 stopProcessing();
             }
-
-            // --- 4. Завершение ---
-            const elapsedTime = performance.now() - startTime;
-            const delay = Math.max(0, MIN_PROCESSING_TIME - elapsedTime);
-
-            setTimeout(() => {
-                stopProcessing();
-                
-                if (success) {
-                    const recordCount = (finalXmlContent.match(/<VerificationMeasuringInstrument>/g) || []).length; 
-                    updateSuccess(recordCount);
-                    downloadButton.onclick = () => downloadXML(finalXmlContent, filenameForDownload);
-                } else {
-                    updateStatus(errorMessage, true);
-                }
-            }, delay);
         }
-
-        function convertToXML(csvContent, usedDelimiter) {
-            logMessage('Начало процесса конвертации CSV в XML.');
+        
+        /**
+         * Парсит CSV, валидирует, применяет сопоставления и возвращает массив готовых объектов для XML.
+         * @returns {Array<Object>} Массив валидных записей с готовыми полями для XML.
+         */
+        function parseAndValidateRecords(csvContent, usedDelimiter) {
+            logMessage('Начало парсинга и валидации записей...');
             const lines = csvContent.split('\n').filter(line => line.trim() !== '');
-            
-            if (lines.length <= HEADER_SKIP_LINES) {
-                logError('Файл содержит недостаточно строк для обработки (<= 2).');
-                return null;
-            }
-
             const csvTextWithHeader = lines.slice(HEADER_SKIP_LINES);
-            logMessage(`Пропущено ${HEADER_SKIP_LINES} строк метаданных. Общее количество строк для анализа: ${csvTextWithHeader.length}.`);
-            
-            if (csvTextWithHeader.length === 0) return null;
-
-            const headerLine = csvTextWithHeader[0];
-            const effectiveDelimiter = usedDelimiter || detectDelimiter(headerLine);
-            logMessage(`Определен разделитель: "${effectiveDelimiter}".`);
-            
             const dataLines = csvTextWithHeader.slice(1); 
             
-            const dataRecords = dataLines.map((line) => {
-                return parseCsvLine(line, effectiveDelimiter);
-            }).filter(fields => fields.length > 0); 
+            const dataRecords = dataLines.map((line) => parseCsvLine(line, usedDelimiter)).filter(fields => fields.length > 0); 
             
             logMessage(`Найдено ${dataRecords.length} потенциальных строк для конвертации.`);
 
-            if (dataRecords.length === 0) return null;
-
-            let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
-            xml += '<Message xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="schema.xsd">\n';
-            xml += '    <VerificationMeasuringInstrumentData>\n';
-            
-            let recordCount = 0;
+            const validRecords = [];
             
             for (let i = 0; i < dataRecords.length; i++) {
                 const fields = dataRecords[i];
                 const lineNumber = i + HEADER_SKIP_LINES + 2; 
 
-                // Проверка на минимальное количество колонок (документ - 10, ГРСИ - 4)
                 if (fields.length < COL_INDEX.Document + 1 || fields.length < COL_INDEX.GRSI + 1) {
                      logError(`Строка ${lineNumber}: Пропущена: недостаточно столбцов.`);
                      continue;
@@ -1236,95 +1210,107 @@
 
                 try {
                     const authorFull = fields[COL_INDEX.Author].trim();
-                    const typeInstrument = fields[COL_INDEX.Type].trim();     // Используется для XML-тега TypeMeasuringInstrument
-                    const grsiNumber = fields[COL_INDEX.GRSI].trim();         // Используется как ключ для МПИ
                     const documentNum = fields[COL_INDEX.Document];
-                    const dateVerification = fields[COL_INDEX.Date];
-                    const suitabilityText = fields[COL_INDEX.Suitability];
 
                     if (!documentNum || documentNum.trim() === '') {
                         logError(`Строка ${lineNumber} (${documentNum}): Пропущена, отсутствует номер документа (колонка ${COL_INDEX.Document}).`);
                         continue;
                     }
                     
-                    // --- 1. Проверка СНИЛС (должна пройти, если runConversionProcess была вызвана) ---
                     const snils = authorSnilsMap[authorFull];
-                    if (!snils) {
-                        logError(`Строка ${lineNumber} (${documentNum}): Отсутствует сопоставление СНИЛС для автора: "${authorFull}". (Запись пропущена)`);
-                        continue;
-                    }
-                    
-                    // --- 2. Проверка МПИ (по ключу ГРСИ) (должна пройти, если runConversionProcess была вызвана) ---
+                    const grsiNumber = fields[COL_INDEX.GRSI].trim();         
                     const mpiMonths = mpiMonthsMap[grsiNumber];
-                    if (!mpiMonths) {
-                        logError(`Строка ${lineNumber} (${documentNum}): Отсутствует сопоставление МПИ для ГРСИ №: "${grsiNumber}". (Запись пропущена)`);
-                        continue;
-                    }
+                    
+                    // Эти проверки должны были быть сделаны до вызова, но дублируем для безопасности
+                    if (!snils) { logError(`Строка ${lineNumber} (${documentNum}): Отсутствует сопоставление СНИЛС для автора: "${authorFull}".`); continue; }
+                    if (!mpiMonths) { logError(`Строка ${lineNumber} (${documentNum}): Отсутствует сопоставление МПИ для ГРСИ №: "${grsiNumber}".`); continue; }
 
 
                     // --- Валидация и Форматирование ---
-                    
+                    const dateVerification = fields[COL_INDEX.Date];
                     const dateVerificationClean = dateVerification.split(' ')[0];
                     const formattedDateVerification = formatDateToISO(dateVerificationClean);
                     
                     if (formattedDateVerification === "") {
-                         logError(`Строка ${lineNumber} (${documentNum}): Не удалось преобразовать дату "${dateVerificationClean}". (Запись пропущена)`);
+                         logError(`Строка ${lineNumber} (${documentNum}): Не удалось преобразовать дату "${dateVerificationClean}".`);
                          continue;
                     }
                     
-                    // Расчет даты окончания поверки с использованием МПИ (в месяцах)
                     const dateEndVerification = calculateDateEndVerification(dateVerificationClean, mpiMonths);
-                    const resultVerification = mapSuitability(suitabilityText);
+                    const resultVerification = mapSuitability(fields[COL_INDEX.Suitability]);
                     
                     // Разделение ФИО
                     const authorParts = authorFull.split(/\s+/).filter(p => p.length > 0);
                     const lastName = authorParts[0] || "Неизвестный";
                     const firstName = authorParts.slice(1).join(' ') || "Автор";
                     
-                    // Экранирование XML-специальных символов
-                    const escape = (str) => str ? str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;') : '';
-
-                    xml += '        <VerificationMeasuringInstrument>\n';
-                    xml += `            <NumberVerification>${escape(documentNum)}</NumberVerification>\n`;
-                    xml += `            <DateVerification>${escape(formattedDateVerification)}</DateVerification>\n`;
-                    
-                    if (resultVerification === '1' && dateEndVerification) {
-                        xml += `            <DateEndVerification>${escape(dateEndVerification)}</DateEndVerification>\n`;
-                    } else if (resultVerification === '1' && !dateEndVerification) {
-                        logError(`Строка ${lineNumber} (${documentNum}): Не удалось рассчитать DateEndVerification. Поле пропущено.`);
-                    }
-                    // TypeMeasuringInstrument берется из колонки 3 ('Type')
-                    xml += `            <TypeMeasuringInstrument>${escape(typeInstrument)}</TypeMeasuringInstrument>\n`;
-                    xml += '            <ApprovedEmployees>\n';
-                    xml += '                <Name>\n';
-                    xml += `                    <Last>${escape(lastName)}</Last>\n`;
-                    xml += `                    <First>${escape(firstName)}</First>\n`;
-                    xml += '                </Name>\n';
-                    xml += `                <SNILS>${escape(snils)}</SNILS>\n`;
-                    xml += '            </ApprovedEmployees>\n';
-                    xml += `            <ResultVerification>${resultVerification}</ResultVerification>\n`;
-                    xml += '        </VerificationMeasuringInstrument>\n';
-                    
-                    recordCount++;
+                    // Сохраняем готовую запись
+                    validRecords.push({
+                        lineNumber,
+                        documentNum,
+                        typeInstrument: fields[COL_INDEX.Type].trim(),
+                        formattedDateVerification,
+                        dateEndVerification,
+                        resultVerification,
+                        lastName,
+                        firstName,
+                        snils
+                    });
 
                 } catch (e) {
                     logError(`Строка ${lineNumber}: Критическая ошибка обработки: ${e.message}.`);
                 }
             }
             
-            logMessage(`Всего обработано валидных записей: ${recordCount}. Ошибок обработки: ${errorCount}.`);
+            logMessage(`Парсинг завершен. Всего валидных записей: ${validRecords.length}.`);
+            return validRecords;
+        }
+
+        /**
+         * Генерирует XML-контент для заданного массива записей.
+         * @param {Array<Object>} records - Массив записей, возвращенный parseAndValidateRecords.
+         * @returns {string} Готовая XML-строка.
+         */
+        function generateXmlContent(records) {
+            let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+            xml += '<Message xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="schema.xsd">\n';
+            xml += '    <VerificationMeasuringInstrumentData>\n';
+            
+            const escape = (str) => str ? str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;') : '';
+
+            records.forEach(record => {
+                xml += '        <VerificationMeasuringInstrument>\n';
+                xml += `            <NumberVerification>${escape(record.documentNum)}</NumberVerification>\n`;
+                xml += `            <DateVerification>${escape(record.formattedDateVerification)}</DateVerification>\n`;
+                
+                if (record.resultVerification === '1' && record.dateEndVerification) {
+                    xml += `            <DateEndVerification>${escape(record.dateEndVerification)}</DateEndVerification>\n`;
+                } else if (record.resultVerification === '1' && !record.dateEndVerification) {
+                    logMessage(`Строка ${record.lineNumber} (${record.documentNum}): Не удалось рассчитать DateEndVerification. Поле пропущено.`, 'WARN');
+                }
+                
+                xml += `            <TypeMeasuringInstrument>${escape(record.typeInstrument)}</TypeMeasuringInstrument>\n`;
+                xml += '            <ApprovedEmployees>\n';
+                xml += '                <Name>\n';
+                xml += `                    <Last>${escape(record.lastName)}</Last>\n`;
+                xml += `                    <First>${escape(record.firstName)}</First>\n`;
+                xml += '                </Name>\n';
+                xml += `                <SNILS>${escape(record.snils)}</SNILS>\n`;
+                xml += '            </ApprovedEmployees>\n';
+                xml += `            <ResultVerification>${record.resultVerification}</ResultVerification>\n`;
+                xml += '        </VerificationMeasuringInstrument>\n';
+            });
 
             xml += '    </VerificationMeasuringInstrumentData>\n';
             xml += '    <SaveMethod>2</SaveMethod>\n';
             xml += '</Message>';
 
-            if (recordCount > 0) {
-                return xml;
-            } else {
-                return null;
-            }
+            return xml;
         }
 
+        /**
+         * Загрузка одного файла.
+         */
         function downloadXML(xmlContent, filename) {
             const blob = new Blob([xmlContent], { type: 'text/xml;charset=utf-8' });
             const url = URL.createObjectURL(blob);
@@ -1336,6 +1322,67 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             logMessage(`XML-файл "${filename}" создан и загружен.`);
+        }
+        
+        /**
+         * НОВЫЙ ХЕНДЛЕР СКАЧИВАНИЯ, УЧИТЫВАЮЩИЙ РАЗДЕЛЕНИЕ.
+         */
+        function handleDownload() {
+            if (!allProcessedRecords || allProcessedRecords.length === 0) {
+                logError('Нет данных для скачивания.');
+                return;
+            }
+            
+            const shouldSplit = splitOutputCheckbox.checked;
+            const filenameBase = lastFileNameBase;
+            const records = allProcessedRecords;
+            const totalRecords = records.length;
+            
+            downloadButton.disabled = true; // Отключаем кнопку на время загрузки
+            downloadButton.textContent = shouldSplit ? 'Начало загрузки...' : 'Скачивание...';
+
+            if (shouldSplit) {
+                // Логика разделения и последовательной загрузки
+                const numChunks = Math.ceil(totalRecords / MAX_RECORDS_PER_FILE);
+                logMessage(`Разделение на ${numChunks} файлов по ${MAX_RECORDS_PER_FILE} записей.`);
+                
+                let currentChunk = 0;
+                
+                function downloadNextChunk() {
+                    if (currentChunk < numChunks) {
+                        const start = currentChunk * MAX_RECORDS_PER_FILE;
+                        const end = Math.min(start + MAX_RECORDS_PER_FILE, totalRecords);
+                        const chunkRecords = records.slice(start, end);
+                        
+                        const chunkXml = generateXmlContent(chunkRecords);
+                        const filename = `${filenameBase}_part_${currentChunk + 1}-of-${numChunks}.xml`;
+                        
+                        // Используем setTimeout(0) для асинхронного скачивания, чтобы избежать блокировки
+                        setTimeout(() => {
+                            downloadXML(chunkXml, filename);
+                            downloadButton.textContent = `Загрузка файла ${currentChunk + 1} из ${numChunks}...`;
+                            currentChunk++;
+                            downloadNextChunk(); // Рекурсивный вызов для следующего файла
+                        }, 500); // Небольшая задержка, чтобы помочь браузеру обработать множественные запросы
+                    } else {
+                        logMessage('Все части XML-файлов успешно загружены.');
+                        downloadButton.disabled = false;
+                        downloadButton.textContent = 'Скачать XML-файл';
+                    }
+                }
+                
+                downloadNextChunk();
+
+            } else {
+                // Логика загрузки одного файла
+                const finalXmlContent = generateXmlContent(records);
+                const filename = `${filenameBase}.xml`;
+                
+                downloadXML(finalXmlContent, filename);
+                
+                downloadButton.disabled = false;
+                downloadButton.textContent = 'Скачать XML-файл';
+            }
         }
         
         function readFileWithEncoding(file, encoding) {
@@ -1366,7 +1413,6 @@
             let usedDelimiter = null;
 
             try {
-                // --- 1. Чтение файла ---
                 logMessage('Чтение файла с автоопределением кодировки...');
                 let content = await readFileWithEncoding(file, 'UTF-8');
                 
@@ -1382,11 +1428,11 @@
                 // --- Сохраняем для автоперезапуска и для проверки отсутствующих данных ---
                 lastCsvContent = csvContent;
                 lastDelimiter = usedDelimiter;
-                lastFileName = generateFileName(); // Генерируем имя файла заранее для сохранения консистентности
+                lastFileNameBase = generateFileNameBase(); // Генерируем базовое имя файла
 
                 
                 // --- 2. Запуск процесса (который теперь включает проверку отсутствующих данных) ---
-                await runConversionProcess(lastCsvContent, lastDelimiter, lastFileName);
+                await runConversionProcess(lastCsvContent, lastDelimiter);
 
             } catch(e) {
                  const errorMessage = `Критическая ошибка чтения файла: ${e.message}`;
@@ -1450,10 +1496,17 @@
             }
             e.target.value = null; 
         });
+        
+        // --- НОВЫЙ ХЕНДЛЕР: Перезапуск конвертации при смене опции разделения, если файл уже загружен ---
+        splitOutputCheckbox.addEventListener('change', () => {
+             if (allProcessedRecords.length > 0) {
+                 updateSuccess(allProcessedRecords.length);
+             }
+        });
 
 
         // Инициализация
-        loadMappings(); // Загрузка сохраненных сопоставлений СНИЛС и МПИ
+        loadMappings(); 
         updateStatus("Готов к работе. Поддерживается автоопределение кодировки.");
     </script>
 </body>
