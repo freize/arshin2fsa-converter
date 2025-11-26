@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSV в XML Конвертер (СИ)</title>
+    <title>Конвертер данных для ФГИС ФСА</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -19,6 +19,10 @@
         .drag-area.active {
             border-color: #3b82f6; /* blue-500 */
             background-color: #eff6ff; /* blue-50 */
+        }
+        /* Custom style for instruction summary icon */
+        details[open] summary svg {
+            transform: rotate(180deg);
         }
     </style>
     <script>
@@ -36,15 +40,47 @@
 <body class="p-4 md:p-8 min-h-screen">
 
     <div class="max-w-4xl mx-auto bg-white p-6 md:p-10 rounded-xl shadow-2xl">
-        <header class="mb-8">
+        <header class="mb-6">
             <h1 class="text-3xl font-bold text-gray-800 mb-2">
-                Конвертер CSV в XML (СИ)
+                Конвертер данных для ФГИС ФСА
             </h1>
             <p class="text-gray-500">
-                Загрузите CSV-файл для преобразования данных о поверках в формат XML.
+                Данный конвертер предназначен для преобразования формата файла выгрузки из ФГИС "АРШИН" в формат для загрузки в ФГИС ФСА.
             </p>
         </header>
 
+        <!-- Instruction Guide Block -->
+        <details class="mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <summary class="flex justify-between items-center cursor-pointer font-semibold text-yellow-800 focus:outline-none">
+                <span>
+                    <svg class="w-5 h-5 inline-block mr-2 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    Инструкция по подготовке файла (ВАЖНО)
+                </span>
+                <svg class="w-4 h-4 text-yellow-600 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+            </summary>
+            
+            <div class="mt-3 text-sm text-gray-700 space-y-3">
+                <p class="font-bold text-yellow-900">1. Проверка структуры файла:</p>
+                <p>Ваш файл должен быть экспортирован из реестра таким образом, чтобы заголовок таблицы начинался с <span class="font-mono bg-yellow-100 p-1 rounded">3-й строки</span> (первые две строки – это метаданные, которые конвертер автоматически пропустит).</p>
+                
+                <p class="font-bold text-yellow-900">2. Обязательные колонки (Индекс = номер колонки, начиная с 0):</p>
+                <ul class="list-disc list-inside ml-4 space-y-1 bg-white p-3 rounded border">
+                    <li><span class="font-mono">Author</span> (Индекс **1**): ФИО автора записи.</li>
+                    <li><span class="font-mono">Type</span> (Индекс **3**): Наименование типа СИ.</li>
+                    <li><span class="font-mono">Date</span> (Индекс **5**): Дата поверки.</li>
+                    <li><span class="font-mono">Suitability</span> (Индекс **9**): Пригодность ("Да" или "Нет").</li>
+                    <li><span class="font-mono">Document</span> (Индекс **10**): Номер документа (протокола) поверки.</li>
+                </ul>
+                
+                <p class="font-bold text-yellow-900">3. Сохранение в формат CSV:</p>
+                <p>В Excel выберите "Сохранить как" и выберите тип файла <span class="font-medium">CSV (разделители-запятые)</span> или <span class="font-medium">CSV (разделители-точки с запятой)</span>. Конвертер автоматически определит разделитель.</p>
+                
+                <p class="text-xs italic mt-4 text-yellow-700">
+                    <span class="font-semibold">Примечание по датам:</span> Даты в CSV (Индекс 5) должны быть в одном из форматов: ДД.ММ.ГГГГ, ДД-ММ-ГГГГ или ГГГГ-ММ-ДД.
+                </p>
+            </div>
+        </details>
+        
         <!-- File Input Area -->
         <div id="drop-area" class="drag-area p-8 rounded-lg text-center cursor-pointer transition-all hover:shadow-lg">
             <input type="file" id="fileInput" accept=".csv" class="hidden">
@@ -76,6 +112,13 @@
             <h3 class="font-bold">Обнаружены ошибки:</h3>
             <pre id="errorDetails" class="mt-2 whitespace-pre-wrap text-sm"></pre>
         </div>
+
+        <!-- Footer Section with Copyright -->
+        <footer class="mt-8 pt-4 border-t border-gray-200 text-center">
+            <p class="text-xs text-gray-400">
+                Разработано Службой испытаний, экспертизы и метрологии ГАУ ИНПЦ "Гормедтехника" и все права защищены.
+            </p>
+        </footer>
     </div>
 
     <script>
