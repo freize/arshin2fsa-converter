@@ -116,7 +116,7 @@
         <!-- Footer Section with Copyright -->
         <footer class="mt-8 pt-4 border-t border-gray-200 text-center">
             <p class="text-xs text-gray-400">
-                Разработано Службой испытаний, экспертизы и метрологии ГАУ ИНПЦ "Гормедтехника" и все права защищены.
+                Разработано Службой испытаний, экспертизы и метрологии ГАУ ИНПЦ "Гормедтехника".  Все права защищены.
             </p>
         </footer>
     </div>
@@ -381,7 +381,12 @@
                     xml += `            <NumberVerification>${escape(documentNum)}</NumberVerification>\n`;
                     // Используем отформатированную дату
                     xml += `            <DateVerification>${escape(formattedDateVerification)}</DateVerification>\n`;
-                    xml += `            <DateEndVerification>${escape(dateEndVerification)}</DateEndVerification>\n`;
+                    
+                    // Условие: DateEndVerification выводится только если ResultVerification = 1 ("Да"/"Пригоден")
+                    if (resultVerification === '1') {
+                        xml += `            <DateEndVerification>${escape(dateEndVerification)}</DateEndVerification>\n`;
+                    }
+
                     xml += `            <TypeMeasuringInstrument>${escape(typeInstrument)}</TypeMeasuringInstrument>\n`;
                     xml += '            <ApprovedEmployees>\n';
                     xml += '                <Name>\n';
