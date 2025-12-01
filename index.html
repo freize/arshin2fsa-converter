@@ -273,28 +273,28 @@
                 box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.2);
             }
             
-            .bg-red-100 {
-                background-color: rgba(248, 113, 113, 0.1);
-            }
-            
-            .bg-orange-100 {
-                background-color: rgba(251, 146, 60, 0.1);
-            }
-            
             .bg-red-50 {
-                background-color: rgba(248, 113, 113, 0.05);
+                background-color: rgba(254, 226, 226, 0.1);
             }
             
             .bg-orange-50 {
-                background-color: rgba(251, 146, 60, 0.05);
+                background-color: rgba(255, 237, 213, 0.1);
             }
             
-            .border-red-200 {
-                border-color: rgba(248, 113, 113, 0.3);
+            .bg-purple-50 {
+                background-color: rgba(237, 233, 254, 0.1);
             }
             
-            .border-orange-200 {
-                border-color: rgba(251, 146, 60, 0.3);
+            .border-red-300 {
+                border-color: rgba(252, 165, 165, 0.3);
+            }
+            
+            .border-orange-300 {
+                border-color: rgba(253, 186, 116, 0.3);
+            }
+            
+            .border-purple-300 {
+                border-color: rgba(196, 181, 253, 0.3);
             }
             
             .bg-gray-200 {
@@ -408,9 +408,9 @@
             </div>
             
             <!-- БЛОК ПРЕДУПРЕЖДЕНИЯ О НЕДОСТАЮЩИХ АВТОРАХ (СНИЛС) -->
-            <div id="missingAuthorsContainer" class="hidden p-4 bg-red-100 border-l-4 border-red-500 rounded-lg shadow-md dark:bg-red-900/20 dark:border-red-600">
+            <div id="missingAuthorsContainer" class="hidden p-4 bg-red-50 border-l-4 border-red-300 rounded-lg shadow-md dark:bg-red-900/10 dark:border-red-500">
                 <div class="flex items-start">
-                    <svg class="h-6 w-6 text-red-600 dark:text-red-400 mt-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg class="h-6 w-6 text-red-500 dark:text-red-400 mt-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.3 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                     <div class="ml-3 w-full">
@@ -421,33 +421,58 @@
                             Введите СНИЛС для следующих авторов, чтобы не пропускать их записи.
                         </p>
                         <!-- ДИНАМИЧЕСКАЯ ФОРМА ДЛЯ БЫСТРОГО ВВОДА СНИЛС -->
-                        <form id="missingSnilsForm" class="mt-2 text-sm bg-red-50 dark:bg-red-900/10 p-3 rounded max-h-56 overflow-y-auto space-y-2 custom-scrollbar">
+                        <form id="missingSnilsForm" class="mt-2 text-sm bg-white dark:bg-red-900/10 p-3 rounded max-h-56 overflow-y-auto space-y-2 custom-scrollbar">
                             <!-- Список авторов и полей ввода будет сгенерирован здесь -->
                         </form>
-                        <button id="saveMissingSnilsButton" class="w-full mt-3 bg-red-600 text-white font-bold py-2 rounded-lg hover:bg-red-700 transition-colors duration-200 dark:bg-red-700 dark:hover:bg-red-600">
-                            Сохранить все недостающие СНИЛС
+                        <button id="saveMissingSnilsButton" class="w-full mt-3 bg-red-500 text-white font-bold py-2 rounded-lg hover:bg-red-600 transition-colors duration-200 dark:bg-red-600 dark:hover:bg-red-500">
+                            Сохранить недостающие СНИЛС
                         </button>
                     </div>
                 </div>
             </div>
 
             <!-- БЛОК: ПРЕДУПРЕЖДЕНИЕ О НЕДОСТАЮЩИХ МПИ (Ключ - ГРСИ) -->
-            <div id="missingMpiContainer" class="hidden p-4 bg-orange-100 border-l-4 border-orange-500 rounded-lg shadow-md dark:bg-orange-900/20 dark:border-orange-600">
+            <div id="missingMpiContainer" class="hidden p-4 bg-orange-50 border-l-4 border-orange-300 rounded-lg shadow-md dark:bg-orange-900/10 dark:border-orange-500">
                 <div class="flex items-start">
-                    <svg class="h-6 w-6 text-orange-600 dark:text-orange-400 mt-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h.01M17 11h.01M9 15h.01M15 15h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                    <svg class="h-6 w-6 text-orange-500 dark:text-orange-400 mt-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h.01M17 11h.01M9 15h.01M15 15h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
                     <div class="ml-3 w-full">
                         <h3 class="text-lg font-semibold text-orange-800 dark:text-orange-200">
                             Обнаружены недостающие МПИ!
                         </h3>
                         <p class="mt-1 text-sm text-orange-700 dark:text-orange-300">
                             Введите Межповерочный Интервал (в месяцах) или "-" для бессрочной поверки для следующих Номеров записи ГРСИ.
+                            <span class="font-medium text-orange-800 dark:text-orange-300">Можно отметить "Вручную" для ГРСИ с динамичным МПИ.</span>
                         </p>
                         <!-- ДИНАМИЧЕСКАЯ ФОРМА ДЛЯ БЫСТРОГО ВВОДА МПИ -->
-                        <form id="missingMpiForm" class="mt-2 text-sm bg-orange-50 dark:bg-orange-900/10 p-3 rounded max-h-56 overflow-y-auto space-y-2 custom-scrollbar">
+                        <form id="missingMpiForm" class="mt-2 text-sm bg-white dark:bg-orange-900/10 p-3 rounded max-h-56 overflow-y-auto space-y-2 custom-scrollbar">
                             <!-- Список типов СИ и полей ввода будет сгенерирован здесь -->
                         </form>
-                        <button id="saveMissingMpiButton" class="w-full mt-3 bg-orange-600 text-white font-bold py-2 rounded-lg hover:bg-orange-700 transition-colors duration-200 dark:bg-orange-700 dark:hover:bg-orange-600">
+                        <button id="saveMissingMpiButton" class="w-full mt-3 bg-orange-500 text-white font-bold py-2 rounded-lg hover:bg-orange-600 transition-colors duration-200 dark:bg-orange-600 dark:hover:bg-orange-500">
                             Сохранить все недостающие МПИ
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- НОВЫЙ БЛОК: ПРЕДУПРЕЖДЕНИЕ О РУЧНЫХ МПИ (по Document) -->
+            <div id="manualMpiContainer" class="hidden p-4 bg-purple-50 border-l-4 border-purple-300 rounded-lg shadow-md dark:bg-purple-900/10 dark:border-purple-500">
+                <div class="flex items-start">
+                    <svg class="h-6 w-6 text-purple-500 dark:text-purple-400 mt-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    <div class="ml-3 w-full">
+                        <h3 class="text-lg font-semibold text-purple-800 dark:text-purple-200">
+                            Требуется ручной ввод МПИ!
+                        </h3>
+                        <p class="mt-1 text-sm text-purple-700 dark:text-purple-300">
+                            Для следующих записей с отметкой "Вручную" требуется ввести МПИ по номеру документа (не сохраняется в базу).
+                        </p>
+                        <!-- ДИНАМИЧЕСКАЯ ФОРМА ДЛЯ РУЧНОГО ВВОДА МПИ ПО DOCUMENT -->
+                        <form id="manualMpiForm" class="mt-2 text-sm bg-white dark:bg-purple-900/10 p-3 rounded max-h-56 overflow-y-auto space-y-3 custom-scrollbar">
+                            <!-- Список документов и полей ввода будет сгенерирован здесь -->
+                        </form>
+                        <button id="saveManualMpiButton" class="w-full mt-3 bg-purple-500 text-white font-bold py-2 rounded-lg hover:bg-purple-600 transition-colors duration-200 dark:bg-purple-600 dark:hover:bg-purple-500">
+                            Сохранить МПИ с ручным вводом
                         </button>
                     </div>
                 </div>
@@ -458,7 +483,7 @@
                 <label for="splitOutputCheckbox" class="flex items-center space-x-2 cursor-pointer">
                     <input type="checkbox" id="splitOutputCheckbox" class="h-5 w-5 text-accent-sky border-gray-300 rounded focus:ring-accent-sky dark:border-slate-600 dark:bg-slate-700">
                     <span class="text-gray-700 dark:text-gray-300 font-medium select-none">
-                        Разделить выходные файлы (максимально 1000 записей на файл).
+                        Разделить. Максимально 1000 записей на файл.
                     </span>
                 </label>
             </div>
@@ -484,7 +509,7 @@
 
                 <!-- Кнопка с accent-emerald -->
                 <button id="downloadButton"
-                        class="w-full mt-4 bg-emerald-500 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:bg-emerald-600 transition-colors duration-200 opacity-50 cursor-not-allowed disabled:shadow-none dark:bg-emerald-600 dark:hover:bg-emerald-500"
+                        class="w-full mt-4 bg-gray-400 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:bg-gray-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 dark:disabled:bg-gray-700"
                         disabled>
                     Скачать XML-файл
                 </button>
@@ -497,14 +522,14 @@
             <summary class="flex justify-between items-center cursor-pointer font-semibold text-yellow-800 dark:text-yellow-200 focus:outline-none">
                 <span>
                     <svg class="w-5 h-5 inline-block mr-2 text-yellow-600 dark:text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                    Управление сотрудниками и СНИЛС.
+                    Управление сотрудниками и СНИЛС
                 </span>
                 <svg class="w-4 h-4 text-yellow-600 dark:text-yellow-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
             </summary>
             
             <div class="mt-4 space-y-4">
                 <form id="snilsMappingForm" class="flex flex-col sm:flex-row gap-2">
-                    <input type="text" id="authorNameInput" placeholder="ФИО автора (как в CSV)" required
+                    <input type="text" id="authorNameInput" placeholder="Фамилия Имя (как в CSV)" required
                            class="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-yellow-500 focus:border-yellow-500 text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-white" autocomplete="off">
                     <input type="text" id="snilsInput" placeholder="СНИЛС (11 цифр)" pattern="^\d{11}$" required
                            class="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-yellow-500 focus:border-yellow-500 text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-white" autocomplete="off">
@@ -516,11 +541,11 @@
                 <!-- Добавлены кнопки Импорта/Экспорта СНИЛС -->
                 <div class="flex gap-2">
                     <button id="exportSnilsButton" type="button" class="w-1/2 bg-gray-300 text-gray-800 p-2 rounded-lg font-medium hover:bg-gray-400 transition duration-150 dark:bg-slate-600 dark:text-slate-200 dark:hover:bg-slate-500">
-                        Экспорт JSON
+                        Экспорт
                     </button>
                     <input type="file" id="importSnilsFile" accept=".json" class="hidden">
                     <button id="importSnilsButton" type="button" class="w-1/2 bg-gray-300 text-gray-800 p-2 rounded-lg font-medium hover:bg-gray-400 transition duration-150 dark:bg-slate-600 dark:text-slate-200 dark:hover:bg-slate-500">
-                        Импорт JSON
+                        Импорт
                     </button>
                 </div>
                 
@@ -538,17 +563,21 @@
             <summary class="flex justify-between items-center cursor-pointer font-semibold text-green-800 dark:text-green-200 focus:outline-none">
                 <span>
                     <svg class="w-5 h-5 inline-block mr-2 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    Управление ГРСИ и МПИ.
+                    Управление ГРСИ и МПИ
                 </span>
                 <svg class="w-4 h-4 text-green-600 dark:text-green-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
             </summary>
             
             <div class="mt-4 space-y-4">
                 <form id="mpiMappingForm" class="flex flex-col sm:flex-row gap-2">
-                    <input type="text" id="instrumentTypeInput" placeholder="Номер записи ГРСИ (как в CSV, колонка 4)" required
+                    <input type="text" id="instrumentTypeInput" placeholder="Номер записи ГРСИ (как в CSV)" required
                            class="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-green-500 focus:border-green-500 text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-white" autocomplete="off">
                     <input type="text" id="mpiMonthsConfigInput" placeholder="МПИ (мес., напр. 12, 24 или -)" pattern="^[0-9]+$|^-$" required
                            class="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-green-500 focus:border-green-500 text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-white" autocomplete="off">
+                    <div class="flex items-center space-x-2">
+                        <input type="checkbox" id="manualCheckbox" class="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500 dark:border-slate-600 dark:bg-slate-700">
+                        <label for="manualCheckbox" class="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">Вручную</label>
+                    </div>
                     <button type="submit" class="bg-green-600 text-white p-2 rounded-lg font-medium hover:bg-green-700 transition duration-150 flex-shrink-0 dark:bg-green-700 dark:hover:bg-green-600">
                         Добавить/Обновить
                     </button>
@@ -557,11 +586,11 @@
                 <!-- Добавлены кнопки Импорта/Экспорта МПИ -->
                 <div class="flex gap-2">
                     <button id="exportMpiButton" type="button" class="w-1/2 bg-gray-300 text-gray-800 p-2 rounded-lg font-medium hover:bg-gray-400 transition duration-150 dark:bg-slate-600 dark:text-slate-200 dark:hover:bg-slate-500">
-                        Экспорт JSON
+                        Экспорт
                     </button>
                     <input type="file" id="importMpiFile" accept=".json" class="hidden">
                     <button id="importMpiButton" type="button" class="w-1/2 bg-gray-300 text-gray-800 p-2 rounded-lg font-medium hover:bg-gray-400 transition duration-150 dark:bg-slate-600 dark:text-slate-200 dark:hover:bg-slate-500">
-                        Импорт JSON
+                        Импорт
                     </button>
                 </div>
 
@@ -571,13 +600,20 @@
                         Нет сохраненных интервалов МПИ. Используйте форму выше или импортируйте JSON.
                     </p>
                 </div>
-                <!-- Аккуратная навигационная ссылка -->
-                <div class="mb-4 -mt-2"> 
+
+                <!-- Ссылка и кнопка на одном уровне -->
+                <div class="flex items-center justify-between mt-2 mb-4">
+                    <!-- Ссылка слева -->
                     <a href="/mpi.html" class="text-sm text-gray-500 hover:text-blue-600 transition duration-150 flex items-center font-medium dark:text-gray-400 dark:hover:text-blue-400">
-                    <!-- Иконка стрелки влево для навигации -->
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                    К конвертеру ГРСИ и МПИ
-                </a>
+                        <!-- Иконка стрелки влево для навигации -->
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                        К конвертеру ГРСИ и МПИ
+                    </a>
+                    
+                    <!-- Кнопка удаления всех сопоставлений МПИ справа -->
+                    <button id="clearAllMpiButton" type="button" class="text-sm bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600 transition duration-150 dark:bg-red-600 dark:hover:bg-red-500">
+                        Удалить всё
+                    </button>
                 </div>
             </div>
         </details>
@@ -630,12 +666,13 @@
         // --- ГЛОБАЛЬНЫЕ ХРАНИЛИЩА ---
         let errorCount = 0;
         let authorSnilsMap = {}; 
-        let mpiMonthsMap = {};  
+        let mpiMonthsMap = {};  // Теперь хранит объекты: {value: мпи, manual: boolean}
         
         let lastCsvContent = null;
         let lastDelimiter = null;
         let lastFileNameBase = null; // Базовое имя файла без индекса
         let allProcessedRecords = []; // Хранение всех валидных записей для скачивания
+        let manualMpiTempStorage = {}; // Временное хранилище для ручных МПИ по Document (не сохраняется в localStorage)
 
         // --- ЭЛЕМЕНТЫ DOM ---
         const fileInput = document.getElementById('fileInput');
@@ -670,6 +707,7 @@
         const mpiMappingForm = document.getElementById('mpiMappingForm');
         const instrumentTypeInput = document.getElementById('instrumentTypeInput'); 
         const mpiMonthsConfigInput = document.getElementById('mpiMonthsConfigInput');
+        const manualCheckbox = document.getElementById('manualCheckbox');
         const mpiMappingListContainer = document.getElementById('mpiMappingListContainer');
         const emptyMpiMessage = document.getElementById('emptyMpiMessage');
         const missingMpiContainer = document.getElementById('missingMpiContainer');
@@ -681,23 +719,37 @@
         const importMpiButton = document.getElementById('importMpiButton');
         const importMpiFile = document.getElementById('importMpiFile');
 
+        // Элементы для ручного ввода МПИ
+        const manualMpiContainer = document.getElementById('manualMpiContainer');
+        const manualMpiForm = document.getElementById('manualMpiForm');
+        const saveManualMpiButton = document.getElementById('saveManualMpiButton');
+
+        // НОВЫЙ ЭЛЕМЕНТ - кнопка очистки всех данных МПИ
+        const clearAllMpiButton = document.getElementById('clearAllMpiButton');
 
         // --- УТИЛИТЫ И ОБЩИЕ ФУНКЦИИ ---
 
-        function startProcessing() {
+        function startProcessing(isNewFile = false) {
             logDetails.innerHTML = ''; 
             errorCount = 0;
             allProcessedRecords = []; // Очистка записей
+            
+            // Очищаем временное хранилище только при загрузке нового файла
+            if (isNewFile) {
+                manualMpiTempStorage = {}; 
+            }
+            
             statusMessage.textContent = 'Начало обработки файла...';
             statusMessage.classList.remove('text-red-600');
             statusMessage.classList.add('text-gray-600', 'dark:text-gray-400');
             processingIndicator.classList.remove('hidden');
             downloadButton.disabled = true;
-            downloadButton.classList.add('opacity-50', 'cursor-not-allowed', 'disabled:shadow-none');
             downloadButton.classList.remove('bg-emerald-500', 'hover:bg-emerald-600', 'dark:bg-emerald-600', 'dark:hover:bg-emerald-500');
+            downloadButton.classList.add('bg-gray-400', 'dark:bg-gray-600', 'disabled:opacity-50', 'disabled:cursor-not-allowed', 'disabled:hover:bg-gray-400', 'dark:disabled:bg-gray-700');
             recordCountElement.classList.add('hidden');
             missingAuthorsContainer.classList.add('hidden'); 
-            missingMpiContainer.classList.add('hidden'); 
+            missingMpiContainer.classList.add('hidden');
+            manualMpiContainer.classList.add('hidden');
         }
 
         function stopProcessing() {
@@ -712,8 +764,8 @@
             statusMessage.className = `font-semibold text-lg mb-4 ${isError ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400'}`;
             if (isError) {
                 downloadButton.disabled = true;
-                downloadButton.classList.add('opacity-50', 'cursor-not-allowed', 'disabled:shadow-none');
                 downloadButton.classList.remove('bg-emerald-500', 'hover:bg-emerald-600', 'dark:bg-emerald-600', 'dark:hover:bg-emerald-500');
+                downloadButton.classList.add('bg-gray-400', 'dark:bg-gray-600', 'disabled:opacity-50', 'disabled:cursor-not-allowed', 'disabled:hover:bg-gray-400', 'dark:disabled:bg-gray-700');
             }
         }
 
@@ -726,7 +778,7 @@
 
             updateStatus(message, false);
             downloadButton.disabled = false;
-            downloadButton.classList.remove('opacity-50', 'cursor-not-allowed', 'disabled:shadow-none');
+            downloadButton.classList.remove('bg-gray-400', 'dark:bg-gray-600', 'disabled:opacity-50', 'disabled:cursor-not-allowed', 'disabled:hover:bg-gray-400', 'dark:disabled:bg-gray-700');
             downloadButton.classList.add('bg-emerald-500', 'hover:bg-emerald-600', 'dark:bg-emerald-600', 'dark:hover:bg-emerald-500');
             recordCountElement.textContent = `Сконвертировано валидных записей: ${count}. Ошибок обработки строк: ${errorCount}.`;
             recordCountElement.classList.remove('hidden');
@@ -925,7 +977,7 @@
         }
 
 
-        // --- ЛОГИКА СОПОСТАВЛЕНИЙ (Без изменений) ---
+        // --- ЛОГИКА СОПОСТАВЛЕНИЙ ---
 
         function loadMappings() {
             try {
@@ -937,6 +989,15 @@
                 const storedMpi = localStorage.getItem(MPI_STORAGE_KEY);
                  if (storedMpi) {
                     mpiMonthsMap = JSON.parse(storedMpi);
+                    // Конвертируем старый формат (если это просто значение) в новый формат
+                    for (const grsi in mpiMonthsMap) {
+                        if (typeof mpiMonthsMap[grsi] !== 'object') {
+                            mpiMonthsMap[grsi] = {
+                                value: mpiMonthsMap[grsi],
+                                manual: false
+                            };
+                        }
+                    }
                     logMessage('Сопоставления МПИ (ГРСИ) загружены.');
                 }
             } catch(e) {
@@ -968,11 +1029,6 @@
             renderMpiMappings();
         }
         
-        // ... (renderMappings, renderMpiMappings, handleMappingForm, handleMpiMappingForm, handleDeleteMapping, handleDeleteMpiMapping, exportSnilsMap, importSnilsMapHandler, exportMpiMap, importMpiMapHandler - ОСТАВЛЕНО БЕЗ ИЗМЕНЕНИЙ ИЗ-ЗА ДЛИНЫ) ...
-        // ВАЖНО: Функции renderMappings и renderMpiMappings и их хэндлеры (добавление/удаление) остаются без изменений.
-
-        // ... (checkAndDisplayMissingAuthors, checkAndDisplayMissingMpi, handleMissingSnilsSubmission, handleMissingMpiSubmission - ОСТАВЛЕНО БЕЗ ИЗМЕНЕНИЙ ИЗ-ЗА ДЛИНЫ) ...
-
         function renderMappings() {
             const authors = Object.keys(authorSnilsMap).sort();
             mappingListContainer.innerHTML = ''; 
@@ -1040,7 +1096,8 @@
                 <thead class="bg-gray-200 dark:bg-gray-700 sticky top-0">
                     <tr>
                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Номер ГРСИ</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">МПИ (мес. или -)</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">МПИ</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Тип</th>
                         <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Действие</th>
                     </tr>
                 </thead>
@@ -1051,12 +1108,17 @@
             const tbody = document.getElementById('mpiMappingTableBody');
 
             grsiNumbers.forEach(grsi => {
-                const mpi = mpiMonthsMap[grsi];
+                const config = mpiMonthsMap[grsi];
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-gray-50 dark:hover:bg-slate-700 transition duration-100';
                 tr.innerHTML = `
                     <td class="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">${grsi}</td>
-                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${mpi}</td>
+                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        ${config.manual ? '<span class="text-purple-600 dark:text-purple-400 font-medium">Не задан</span>' : config.value}
+                    </td>
+                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        ${config.manual ? '<span class="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 rounded text-xs">Ручной</span>' : '<span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded text-xs">Авто</span>'}
+                    </td>
                     <td class="px-4 py-2 whitespace-nowrap text-right text-sm font-medium">
                         <button data-type="${grsi}" class="delete-mpi-btn text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition duration-150">
                             Удалить
@@ -1091,20 +1153,43 @@
             e.preventDefault();
             const grsiNumber = instrumentTypeInput.value.trim(); // Номер ГРСИ
             const mpiRaw = mpiMonthsConfigInput.value.trim();
-            const isNoExpiry = mpiRaw === MPI_NO_EXPIRY_MARK;
-            const mpiInt = parseInt(mpiRaw, 10);
+            const isManual = manualCheckbox.checked;
 
-            if (grsiNumber && (isNoExpiry || (!isNaN(mpiInt) && mpiInt > 0))) {
-                const mpiValue = isNoExpiry ? MPI_NO_EXPIRY_MARK : mpiInt;
-                const mpiText = isNoExpiry ? `бессрочный ("${MPI_NO_EXPIRY_MARK}")` : `${mpiInt} мес.`;
-                mpiMonthsMap[grsiNumber] = mpiValue;
-                logMessage(`МПИ сопоставление добавлено/обновлено: ГРСИ №${grsiNumber} -> ${mpiText}`);
-                saveAndRenderMpiMappings();
-                instrumentTypeInput.value = '';
-                mpiMonthsConfigInput.value = '';
-            } else {
-                 logError(`Ошибка: Проверьте правильность Номера ГРСИ и МПИ (целое число месяцев > 0 или "${MPI_NO_EXPIRY_MARK}").`);
+            if (!grsiNumber) {
+                logError('Ошибка: Введите номер ГРСИ.');
+                return;
             }
+
+            if (isManual) {
+                // Для ручного ввода - сохраняем только флаг, без значения
+                mpiMonthsMap[grsiNumber] = {
+                    value: null,
+                    manual: true
+                };
+                logMessage(`Добавлена запись ГРСИ №${grsiNumber} с ручным вводом МПИ.`);
+            } else {
+                // Для обычной записи - проверяем и сохраняем значение
+                const isNoExpiry = mpiRaw === MPI_NO_EXPIRY_MARK;
+                const mpiInt = parseInt(mpiRaw, 10);
+
+                if (isNoExpiry || (!isNaN(mpiInt) && mpiInt > 0)) {
+                    const mpiValue = isNoExpiry ? MPI_NO_EXPIRY_MARK : mpiInt;
+                    const mpiText = isNoExpiry ? `бессрочный ("${MPI_NO_EXPIRY_MARK}")` : `${mpiInt} мес.`;
+                    mpiMonthsMap[grsiNumber] = {
+                        value: mpiValue,
+                        manual: false
+                    };
+                    logMessage(`МПИ сопоставление добавлено/обновлено: ГРСИ №${grsiNumber} -> ${mpiText}`);
+                } else {
+                    logError(`Ошибка: Проверьте правильность МПИ (целое число месяцев > 0 или "${MPI_NO_EXPIRY_MARK}").`);
+                    return;
+                }
+            }
+
+            saveAndRenderMpiMappings();
+            instrumentTypeInput.value = '';
+            mpiMonthsConfigInput.value = '';
+            manualCheckbox.checked = false;
         }
 
         function handleDeleteMapping(e) {
@@ -1122,6 +1207,20 @@
                 delete mpiMonthsMap[grsi];
                 logMessage(`Сопоставление МПИ удалено для ГРСИ №: ${grsi}`);
                 saveAndRenderMpiMappings();
+            }
+        }
+        
+        // НОВАЯ ФУНКЦИЯ: Очистка всех сопоставлений МПИ
+        function handleClearAllMpi() {
+            if (Object.keys(mpiMonthsMap).length === 0) {
+                logError('Нет данных для удаления: Сопоставления МПИ уже пусты.');
+                return;
+            }
+            
+            if (confirm("Вы уверены, что хотите удалить ВСЕ сопоставления ГРСИ и МПИ? Это действие нельзя отменить.")) {
+                mpiMonthsMap = {};
+                saveAndRenderMpiMappings();
+                logMessage('Все сопоставления ГРСИ и МПИ удалены.');
             }
         }
         
@@ -1190,7 +1289,7 @@
                 try {
                     const importedMap = JSON.parse(e.target.result);
                     if (typeof importedMap !== 'object' || Array.isArray(importedMap)) {
-                        logError('Ошибка импорта МПИ: Файл имеет неверный формат (ожидается объект {grsi_number: mpi_months}).');
+                        logError('Ошибка импорта МПИ: Файл имеет неверный формат (ожидается объект {grsi_number: {value, manual}}).');
                         return;
                     }
 
@@ -1198,19 +1297,53 @@
                     let totalCount = 0;
                     for (const key in importedMap) {
                         if (importedMap.hasOwnProperty(key)) {
-                            const rawValue = importedMap[key];
-                            const mpiString = typeof rawValue === 'string' ? rawValue.trim() : rawValue;
-                            const isNoExpiry = mpiString === MPI_NO_EXPIRY_MARK;
-                            const mpi = parseInt(mpiString, 10);
-                            if (isNoExpiry || (!isNaN(mpi) && mpi > 0)) {
-                                const valueToStore = isNoExpiry ? MPI_NO_EXPIRY_MARK : mpi;
-                                if (mpiMonthsMap[key] !== valueToStore) {
-                                    newCount++;
+                            const config = importedMap[key];
+                            
+                            // Проверяем формат конфигурации
+                            if (typeof config === 'object' && config !== null) {
+                                // Новый формат с объектом
+                                if (config.manual === true) {
+                                    // Ручная запись
+                                    mpiMonthsMap[key] = { value: null, manual: true };
+                                    totalCount++;
+                                    if (!mpiMonthsMap[key] || mpiMonthsMap[key].manual !== true) {
+                                        newCount++;
+                                    }
+                                } else if (config.value !== undefined) {
+                                    // Обычная запись с значением
+                                    const mpiString = typeof config.value === 'string' ? config.value.trim() : config.value;
+                                    const isNoExpiry = mpiString === MPI_NO_EXPIRY_MARK;
+                                    const mpi = parseInt(mpiString, 10);
+                                    
+                                    if (isNoExpiry || (!isNaN(mpi) && mpi > 0)) {
+                                        mpiMonthsMap[key] = { 
+                                            value: isNoExpiry ? MPI_NO_EXPIRY_MARK : mpi, 
+                                            manual: false 
+                                        };
+                                        totalCount++;
+                                        if (!mpiMonthsMap[key] || mpiMonthsMap[key].value !== mpiMonthsMap[key].value) {
+                                            newCount++;
+                                        }
+                                    } else {
+                                        logError(`Импорт МПИ: Пропущено невалидное значение МПИ для ГРСИ №"${key}".`);
+                                    }
                                 }
-                                mpiMonthsMap[key] = valueToStore;
-                                totalCount++;
-                            } else {
-                                logError(`Импорт МПИ: Пропущено невалидное значение МПИ для ГРСИ №"${key}". Допустимы числа > 0 или "${MPI_NO_EXPIRY_MARK}".`);
+                            } else if (typeof config === 'string' || typeof config === 'number') {
+                                // Старый формат - только значение
+                                const mpiString = String(config);
+                                const isNoExpiry = mpiString === MPI_NO_EXPIRY_MARK;
+                                const mpi = parseInt(mpiString, 10);
+                                
+                                if (isNoExpiry || (!isNaN(mpi) && mpi > 0)) {
+                                    mpiMonthsMap[key] = { 
+                                        value: isNoExpiry ? MPI_NO_EXPIRY_MARK : mpi, 
+                                        manual: false 
+                                    };
+                                    totalCount++;
+                                    newCount++;
+                                } else {
+                                    logError(`Импорт МПИ: Пропущено невалидное значение МПИ для ГРСИ №"${key}".`);
+                                }
                             }
                         }
                     }
@@ -1283,9 +1416,28 @@
         function checkAndDisplayMissingMpi(csvContent, usedDelimiter) {
             const uniqueGrsiNumbers = getUniqueValuesFromCsv(csvContent, usedDelimiter, COL_INDEX.GRSI);
             
+            // Создаем карту ГРСИ -> номер документа (первый попавшийся)
+            const grsiToDocumentMap = {};
+            const lines = csvContent.split('\n').filter(line => line.trim() !== '');
+            if (lines.length > HEADER_SKIP_LINES + 1) {
+                const dataLines = lines.slice(HEADER_SKIP_LINES + 1);
+                dataLines.forEach((line) => {
+                    const fields = parseCsvLine(line, usedDelimiter);
+                    if (fields.length > COL_INDEX.GRSI && fields.length > COL_INDEX.Document) {
+                        const grsi = fields[COL_INDEX.GRSI].trim();
+                        const document = fields[COL_INDEX.Document].trim();
+                        if (grsi && document && !grsiToDocumentMap[grsi]) {
+                            const docNumber = document.split('/').pop();
+                            grsiToDocumentMap[grsi] = docNumber;
+                        }
+                    }
+                });
+            }
+            
             const missingGrsi = [];
             uniqueGrsiNumbers.forEach(grsi => {
-                if (!(grsi in mpiMonthsMap)) {
+                const config = mpiMonthsMap[grsi];
+                if (!config || (config.manual === false && !config.value)) {
                     missingGrsi.push(grsi);
                 }
             });
@@ -1296,20 +1448,132 @@
                 
                 missingMpiForm.innerHTML = ''; 
                 missingGrsi.forEach(grsi => {
+                    const docNumber = grsiToDocumentMap[grsi] || '';
                     const div = document.createElement('div');
                     div.className = 'flex flex-col sm:flex-row items-center gap-2 bg-white dark:bg-slate-800 p-2 rounded shadow-sm border border-orange-200 dark:border-orange-800';
                     div.innerHTML = `
-                        <span class="font-medium text-gray-800 dark:text-gray-200 text-sm w-full sm:w-2/5 truncate" title="${grsi}">ГРСИ №: ${grsi}</span>
-                        <input type="text" data-type="${grsi}" placeholder="МПИ (месяцы) или -" pattern="^[0-9]+$|^-$"
-                               class="mpi-input flex-1 p-1 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded text-sm w-full" autocomplete="off">
+                        <div class="flex items-center justify-between w-full sm:w-2/5">
+                            <span class="font-medium text-gray-800 dark:text-gray-200 text-sm truncate" title="${grsi}">ГРСИ №: ${grsi}</span>
+                            ${docNumber ? `
+                                <button type="button" class="ml-2 p-1 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded text-xs flex items-center justify-center w-6 h-6" 
+                                        title="Найти в ФГИС" onclick="window.open('https://fgis.gost.ru/fundmetrology/cm/results/1-${docNumber}', '_blank')">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                </button>
+                            ` : ''}
+                        </div>
+                        <div class="flex items-center gap-2 flex-1">
+                            <input type="text" data-type="${grsi}" placeholder="МПИ (месяцы) или -" pattern="^[0-9]+$|^-$"
+                                   class="mpi-input flex-1 p-1 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded text-sm w-full" autocomplete="off">
+                            <div class="flex items-center space-x-1">
+                                <input type="checkbox" data-type="${grsi}" class="manual-checkbox-mpi h-4 w-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500 dark:border-slate-600 dark:bg-slate-700">
+                                <label class="text-xs text-gray-700 dark:text-gray-300 whitespace-nowrap">Вручную</label>
+                            </div>
+                        </div>
                     `;
                     missingMpiForm.appendChild(div);
+                    
+                    // Добавляем обработчик для чекбокса
+                    const checkbox = div.querySelector('.manual-checkbox-mpi');
+                    const input = div.querySelector('.mpi-input');
+                    
+                    checkbox.addEventListener('change', function() {
+                        if (this.checked) {
+                            input.disabled = true;
+                            input.value = '';
+                            input.removeAttribute('required');
+                            input.removeAttribute('pattern');
+                        } else {
+                            input.disabled = false;
+                            input.setAttribute('required', '');
+                            input.setAttribute('pattern', '^[0-9]+$|^-$');
+                        }
+                    });
                 });
+                
                 saveMissingMpiButton.onclick = handleMissingMpiSubmission;
                 return true; 
             } else {
                 missingMpiContainer.classList.add('hidden');
                 logMessage('Все номера ГРСИ из файла успешно сопоставлены с данными МПИ.');
+                return false;
+            }
+        }
+
+        /**
+         * Проверяет наличие записей с ручным вводом МПИ и отображает форму для их ввода
+         */
+        function checkAndDisplayManualMpi(csvContent, usedDelimiter) {
+            const lines = csvContent.split('\n').filter(line => line.trim() !== '');
+            if (lines.length <= HEADER_SKIP_LINES + 1) return false;
+
+            const dataLines = lines.slice(HEADER_SKIP_LINES + 1);
+            
+            // Собираем уникальные документы для записей с ручным вводом
+            const manualDocuments = new Map(); // ключ: Document, значение: {grsi, document, type}
+            
+            dataLines.forEach((line) => {
+                const fields = parseCsvLine(line, usedDelimiter);
+                if (fields.length > COL_INDEX.GRSI && fields.length > COL_INDEX.Document && fields.length > COL_INDEX.Type) {
+                    const grsi = fields[COL_INDEX.GRSI].trim();
+                    const document = fields[COL_INDEX.Document].trim();
+                    const type = fields[COL_INDEX.Type].trim();
+                    
+                    if (grsi && document && mpiMonthsMap[grsi] && mpiMonthsMap[grsi].manual === true) {
+                        const docNumber = document.split('/').pop();
+                        if (!manualDocuments.has(docNumber)) {
+                            manualDocuments.set(docNumber, { 
+                                grsi, 
+                                document: docNumber,
+                                type: type || 'Не указан'
+                            });
+                        }
+                    }
+                }
+            });
+
+            // Фильтруем документы, для которых еще не введены МПИ
+            const documentsWithoutMpi = [];
+            manualDocuments.forEach((record, docNumber) => {
+                if (!manualMpiTempStorage[docNumber]) {
+                    documentsWithoutMpi.push({ ...record, docNumber });
+                }
+            });
+
+            if (documentsWithoutMpi.length > 0) {
+                manualMpiContainer.classList.remove('hidden');
+                logMessage(`Обнаружено ${documentsWithoutMpi.length} записей, требующих ручного ввода МПИ по номеру документа.`, 'INFO');
+                
+                manualMpiForm.innerHTML = '';
+                documentsWithoutMpi.forEach(record => {
+                    const div = document.createElement('div');
+                    div.className = 'flex flex-col sm:flex-row items-center gap-2 bg-white dark:bg-slate-800 p-3 rounded shadow-sm border border-purple-200 dark:border-purple-800';
+                    div.innerHTML = `
+                        <div class="flex items-center justify-between w-full sm:w-2/5">
+                            <div>
+                                <div class="font-medium text-gray-800 dark:text-gray-200 text-sm">Документ: ${record.document}</div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400">ГРСИ: ${record.grsi}, Тип: ${record.type}</div>
+                            </div>
+                            <button type="button" class="ml-2 p-1 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded text-xs flex items-center justify-center w-6 h-6" 
+                                    title="Найти в ФГИС" onclick="window.open('https://fgis.gost.ru/fundmetrology/cm/results/1-${record.document}', '_blank')">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                            </button>
+                        </div>
+                        <input type="text" data-document="${record.document}" data-grsi="${record.grsi}" placeholder="МПИ (месяцы) или -" pattern="^[0-9]+$|^-$"
+                               class="manual-mpi-input flex-1 p-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded text-sm w-full" autocomplete="off">
+                    `;
+                    manualMpiForm.appendChild(div);
+                });
+                saveManualMpiButton.onclick = handleManualMpiSubmission;
+                return true;
+            } else {
+                manualMpiContainer.classList.add('hidden');
+                if (manualDocuments.size > 0) {
+                    logMessage(`Все ${manualDocuments.size} записей с ручным вводом МПИ уже имеют введенные значения.`, 'INFO');
+                }
                 return false;
             }
         }
@@ -1376,13 +1640,30 @@
                 const rawValue = input.value.trim();
                 const isNoExpiry = rawValue === MPI_NO_EXPIRY_MARK;
                 const mpi = parseInt(rawValue, 10);
+                
+                // Находим соответствующий чекбокс
+                const checkbox = missingMpiForm.querySelector(`.manual-checkbox-mpi[data-type="${grsiNumber}"]`);
+                const isManual = checkbox ? checkbox.checked : false;
 
                 input.classList.remove('border-red-500', 'bg-red-50', 'border-emerald-500', 'bg-emerald-50', 'dark:border-red-500', 'dark:bg-red-900/20', 'dark:border-emerald-500', 'dark:bg-emerald-900/20');
                 
-                if (isNoExpiry || (!isNaN(mpi) && mpi > 0)) {
+                if (isManual) {
+                    // Сохраняем как ручную запись
+                    mpiMonthsMap[grsiNumber] = {
+                        value: null,
+                        manual: true
+                    };
+                    newMappingsCount++;
+                    input.classList.add('border-purple-500', 'bg-purple-50', 'dark:border-purple-500', 'dark:bg-purple-900/20');
+                    input.disabled = true;
+                } else if (isNoExpiry || (!isNaN(mpi) && mpi > 0)) {
+                    // Сохраняем обычную запись с значением
                     const valueToStore = isNoExpiry ? MPI_NO_EXPIRY_MARK : mpi;
-                    if (mpiMonthsMap[grsiNumber] !== valueToStore) {
-                        mpiMonthsMap[grsiNumber] = valueToStore;
+                    if (!mpiMonthsMap[grsiNumber] || mpiMonthsMap[grsiNumber].value !== valueToStore) {
+                        mpiMonthsMap[grsiNumber] = {
+                            value: valueToStore,
+                            manual: false
+                        };
                         newMappingsCount++;
                     }
                     input.classList.add('border-emerald-500', 'bg-emerald-50', 'dark:border-emerald-500', 'dark:bg-emerald-900/20');
@@ -1417,6 +1698,81 @@
             }
         }
 
+        /**
+         * Обработчик сохранения ручных МПИ (временное хранилище, не в localStorage)
+         */
+        function handleManualMpiSubmission(e) {
+            e.preventDefault();
+            e.stopPropagation(); // Добавляем остановку распространения события
+            
+            const inputs = manualMpiForm.querySelectorAll('.manual-mpi-input');
+            let errorFound = false;
+            let savedCount = 0;
+
+            // Временное хранилище для сохраненных значений
+            const tempSavedValues = {};
+
+            inputs.forEach(input => {
+                const documentNum = input.dataset.document;
+                const grsi = input.dataset.grsi;
+                const rawValue = input.value.trim();
+                const isNoExpiry = rawValue === MPI_NO_EXPIRY_MARK;
+                const mpi = parseInt(rawValue, 10);
+
+                input.classList.remove('border-red-500', 'bg-red-50', 'border-emerald-500', 'bg-emerald-50', 'dark:border-red-500', 'dark:bg-red-900/20', 'dark:border-emerald-500', 'dark:bg-emerald-900/20');
+                
+                if (rawValue === '') {
+                    logError(`Для документа №${documentNum} (ГРСИ ${grsi}) необходимо ввести МПИ.`);
+                    input.classList.add('border-red-500', 'bg-red-50', 'dark:border-red-500', 'dark:bg-red-900/20');
+                    errorFound = true;
+                } else if (isNoExpiry || (!isNaN(mpi) && mpi > 0)) {
+                    const valueToStore = isNoExpiry ? MPI_NO_EXPIRY_MARK : mpi;
+                    tempSavedValues[documentNum] = valueToStore;
+                    savedCount++;
+                    input.classList.add('border-emerald-500', 'bg-emerald-50', 'dark:border-emerald-500', 'dark:bg-emerald-900/20');
+                    input.disabled = true;
+                } else {
+                    logError(`Некорректный МПИ для документа №${documentNum} (ГРСИ ${grsi}). Ожидается целое число месяцев > 0 или "${MPI_NO_EXPIRY_MARK}".`);
+                    input.classList.add('border-red-500', 'bg-red-50', 'dark:border-red-500', 'dark:bg-red-900/20');
+                    errorFound = true;
+                }
+            });
+
+            if (errorFound) {
+                logMessage('Не все ручные МПИ сохранены из-за ошибок валидации. Исправьте выделенные поля.', 'ERROR');
+                return;
+            }
+
+            if (savedCount > 0) {
+                // Сохраняем значения во временное хранилище
+                Object.assign(manualMpiTempStorage, tempSavedValues);
+                logMessage(`Успешно сохранено ${savedCount} ручных МПИ (временное хранилище).`);
+            } else {
+                logMessage('Нет новых данных ручных МПИ для сохранения.');
+                return;
+            }
+
+            manualMpiContainer.classList.add('hidden');
+            
+            // Не очищаем временное хранилище при перезапуске
+            // Сохраняем текущие значения в переменной перед перезапуском
+            const savedManualMpi = {...manualMpiTempStorage};
+            
+            // Создаем копию данных для безопасного перезапуска
+            if (lastCsvContent && lastDelimiter) {
+                logMessage('Все ручные МПИ сохранены. Автоматический перезапуск конвертации...');
+                
+                // Восстанавливаем сохраненные значения перед перезапуском
+                setTimeout(() => {
+                    // Восстанавливаем сохраненные значения
+                    manualMpiTempStorage = savedManualMpi;
+                    runConversionProcess(lastCsvContent, lastDelimiter);
+                }, 300);
+            } else {
+                updateStatus('Ручные МПИ обновлены. Загрузите CSV-файл для конвертации.');
+            }
+        }
+
         // --- ОСНОВНАЯ ЛОГИКА КОНВЕРТАЦИИ ---
         
         /**
@@ -1425,7 +1781,7 @@
          * @param {string} usedDelimiter - Delimiter used in the CSV.
          */
         async function runConversionProcess(csvContent, usedDelimiter) {
-            startProcessing(); 
+            startProcessing(false); // false = не новый файл, не очищаем ручные МПИ
             const startTime = performance.now();
             
             try {
@@ -1433,9 +1789,10 @@
 
                 const missingSnils = checkAndDisplayMissingAuthors(uniqueAuthors);
                 const missingMpi = checkAndDisplayMissingMpi(csvContent, usedDelimiter);
+                const manualMpi = checkAndDisplayManualMpi(csvContent, usedDelimiter);
                 
-                if (missingSnils || missingMpi) {
-                    throw new Error("Требуется ввод недостающих данных (СНИЛС или МПИ). Исправьте выделенные блоки.");
+                if (missingSnils || missingMpi || manualMpi) {
+                    throw new Error("Требуется ввод недостающих данных (СНИЛС, МПИ или ручные МПИ). Исправьте выделенные блоки.");
                 }
                 
                 // --- 3. Парсинг и фильтрация всех валидных записей ---
@@ -1501,12 +1858,36 @@
                     
                     const snils = authorSnilsMap[authorFull];
                     const grsiNumber = fields[COL_INDEX.GRSI].trim();         
-                    const mpiMonths = mpiMonthsMap[grsiNumber];
+                    const mpiConfig = mpiMonthsMap[grsiNumber];
                     
                     // Эти проверки должны были быть сделаны до вызова, но дублируем для безопасности
-                    if (!snils) { logError(`Строка ${lineNumber} (${documentNum}): Отсутствует сопоставление СНИЛС для автора: "${authorFull}".`); continue; }
-                    if (!mpiMonths) { logError(`Строка ${lineNumber} (${documentNum}): Отсутствует сопоставление МПИ для ГРСИ №: "${grsiNumber}".`); continue; }
+                    if (!snils) { 
+                        logError(`Строка ${lineNumber} (${documentNum}): Отсутствует сопоставление СНИЛС для автора: "${authorFull}".`); 
+                        continue; 
+                    }
+                    
+                    if (!mpiConfig) { 
+                        logError(`Строка ${lineNumber} (${documentNum}): Отсутствует сопоставление МПИ для ГРСИ №: "${grsiNumber}".`); 
+                        continue; 
+                    }
 
+                    let mpiMonths;
+                    if (mpiConfig.manual === true) {
+                        // Для ручных записей ищем МПИ по номеру документа во временном хранилище
+                        const docNumber = documentNum.split('/').pop();
+                        mpiMonths = manualMpiTempStorage[docNumber];
+                        if (!mpiMonths) {
+                            logError(`Строка ${lineNumber} (${documentNum}): Для ГРСИ №${grsiNumber} (отмечен как 'Вручную') не введен МПИ по документу ${docNumber}.`);
+                            continue;
+                        }
+                    } else {
+                        // Для обычных записей берем значение из конфигурации
+                        mpiMonths = mpiConfig.value;
+                        if (!mpiMonths) {
+                            logError(`Строка ${lineNumber} (${documentNum}): Отсутствует значение МПИ для ГРСИ №: "${grsiNumber}".`);
+                            continue;
+                        }
+                    }
 
                     // --- Валидация и Форматирование ---
                     const dateVerification = fields[COL_INDEX.Date];
@@ -1689,7 +2070,7 @@
             }
 
             fileNameDisplay.textContent = `Выбран файл: ${file.name}`;
-            startProcessing();
+            startProcessing(true); // true = новый файл, очищаем ручные МПИ
 
             let csvContent = null;
             let usedDelimiter = null;
@@ -1710,7 +2091,7 @@
                 // --- Сохраняем для автоперезапуска и для проверки отсутствующих данных ---
                 lastCsvContent = csvContent;
                 lastDelimiter = usedDelimiter;
-                lastFileNameBase = generateFileNameBase(); // Генерируем базовое имя файла
+                lastFileNameBase = generateFileNameBase(); // Генерируем базое имя файла
 
                 
                 // --- 2. Запуск процесса (который теперь включает проверку отсутствующих данных) ---
@@ -1785,6 +2166,23 @@
                  updateSuccess(allProcessedRecords.length);
              }
         });
+
+        // Обработчик для чекбокса "Вручную" - управление полем ввода МПИ
+        manualCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                mpiMonthsConfigInput.disabled = true;
+                mpiMonthsConfigInput.value = '';
+                mpiMonthsConfigInput.removeAttribute('required');
+                mpiMonthsConfigInput.removeAttribute('pattern');
+            } else {
+                mpiMonthsConfigInput.disabled = false;
+                mpiMonthsConfigInput.setAttribute('required', '');
+                mpiMonthsConfigInput.setAttribute('pattern', '^[0-9]+$|^-$');
+            }
+        });
+
+        // НОВЫЙ ОБРАБОТЧИК: Кнопка очистки всех сопоставлений МПИ
+        clearAllMpiButton.addEventListener('click', handleClearAllMpi);
 
 
         // Инициализация
